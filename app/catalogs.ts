@@ -1,0 +1,83 @@
+// Enseignes proposées à la création. « MAGASIN » fait apparaître le choix du magasin.
+export const STORE_BRAND = 'MAGASIN';
+export const brands = [
+  'CYBERTEK',
+  'CYBERTEK.PRO',
+  'GROSBILL',
+  'GROSBILL.PRO',
+  'PICATA',
+  'BOULANGER',
+  STORE_BRAND,
+];
+// Magasins du groupe (liste fournie le 10/11/2026, modifiable dans Paramètres)
+export const stores = [
+  'AGEN',
+  'ANGLET',
+  'ANGOULINS',
+  'BARENTIN',
+  'BEGLES',
+  'BORDEAUX-LAC',
+  'BREST',
+  'LABEGE',
+  'LYON 3',
+  'MERIGNAC',
+  'MONTAUBAN',
+  'MONTIGNY LES CORMEILLES',
+  'NANTES',
+  'PARIS 13',
+  'PARIS 15',
+  'PARIS 16',
+  'PARIS 2',
+  'PAU',
+  'PERPIGNAN',
+  'PLAN DE CAMPAGNE',
+  'PORTET',
+  'RONCQ',
+  'ST NAZAIRE',
+  'ST PRIEST',
+  'STE GENEVIEVE DES BOIS',
+  'TOULON',
+  'TOULOUSE-NORD',
+  'VILLENEUVE D’ASCQ',
+];
+export const disputeTypes = [
+  'Inversion',
+  'Contestation de livraison',
+  'Livraison endommagé',
+  'Produit manquant',
+  'Colis prêt expéditeur',
+  'Transport',
+  'Produit d’occasion',
+  'Montage',
+  'Logistique',
+  'Retard de livraison classique',
+  'Livraison non conforme',
+  'Retard de livraison express',
+];
+export const products = ['PC', 'PC Portable', 'Composant', 'Périphérique', 'Autre'];
+export const outcomes = [
+  'Fraude étiquette',
+  'Fraude mauvais produit reçu',
+  'Colis perdu',
+  'Livraison conforme',
+  'Contestation de livraison',
+  'Retard de livraison classique',
+  'Livraison non conforme',
+  'Retard de livraison express',
+  'Logistique',
+  'Inversion',
+  'Livraison endommagé',
+  'Produit manquant',
+  'Produit d’occasion',
+  'Montage',
+];
+
+export const carriers = [
+  'COLISSIMO',
+  'CHRONOPOST',
+  'TNT',
+  'FRANCE EXPRESS',
+  'FEDEX',
+  'GEODIS',
+  'KUEHNE NAGEL',
+];

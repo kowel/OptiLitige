@@ -1,0 +1,391 @@
+/* Mode sombre d'OptiLitige : retouches faites à la main.
+   Chargé après app/theme-dark.generated.css (conversion automatique de globals.css).
+   Actif quand <html data-theme="dark"> (bouton Clair / Sombre / Auto, en haut à droite).
+   À l'écran seulement : l'impression et la fiche PDF restent en clair. */
+@media screen {
+  :root[data-theme='dark'] {
+    color-scheme: dark; /* champs date, listes, barres de défilement en sombre */
+    --purple: #a594ff;
+    --ink: #eef0f8;
+    --muted: #aeb5c9;
+    --line: #323c5a;
+    --bg: #161c2f;
+    --surface: #1e2640;
+    --surface-2: #252e4b;
+    --surface-3: #2d3757;
+  }
+  /* globals.css redéfinit --muted sur body (gris plus foncé en clair) : en sombre, on garde
+     le gris clair, sinon les textes secondaires (aides, sous-titres) deviennent peu lisibles */
+  :root[data-theme='dark'] body {
+    --muted: #aeb5c9;
+  }
+  /* « Qui fait quoi, et quand » : étapes sans objet moins effacées qu'en clair */
+  :root[data-theme='dark'] .step-skip {
+    opacity: 0.75;
+  }
+  :root[data-theme='dark'] body {
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  /* Menu : un ton plus profond que la page */
+  :root[data-theme='dark'] .sidebar {
+    background: linear-gradient(180deg, #1a2140, #131a31);
+    border-right: 1px solid #262f4d;
+  }
+
+  /* Cartes et panneaux : surfaces légèrement plus claires que la page */
+  :root[data-theme='dark'] .panel,
+  :root[data-theme='dark'] .analytics-filter-bar,
+  :root[data-theme='dark'] .modal,
+  :root[data-theme='dark'] .notifications,
+  :root[data-theme='dark'] .webcam-box {
+    background: var(--surface);
+    border-color: var(--line);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.03) inset,
+      0 10px 30px rgba(0, 0, 0, 0.35);
+  }
+  :root[data-theme='dark'] .topbar {
+    background: rgba(22, 28, 47, 0.88);
+    border-color: var(--line);
+    backdrop-filter: blur(8px);
+  }
+
+  /* Champs de saisie */
+  :root[data-theme='dark'] input,
+  :root[data-theme='dark'] select,
+  :root[data-theme='dark'] textarea {
+    background: #18203a;
+    border-color: #364166;
+    color: var(--ink);
+  }
+  :root[data-theme='dark'] input:focus,
+  :root[data-theme='dark'] select:focus,
+  :root[data-theme='dark'] textarea:focus {
+    outline: 2px solid rgba(157, 139, 255, 0.45);
+    border-color: #6f5ef0;
+  }
+  :root[data-theme='dark'] input::placeholder,
+  :root[data-theme='dark'] textarea::placeholder {
+    color: #8189a3;
+  }
+  :root[data-theme='dark'] option {
+    background: #1e2640;
+    color: var(--ink);
+  }
+
+  /* Boutons */
+  :root[data-theme='dark'] .primary {
+    background: linear-gradient(135deg, #7b62ff, #5a43e0);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(98, 74, 240, 0.35);
+  }
+  :root[data-theme='dark'] .primary:disabled {
+    opacity: 0.5;
+  }
+  :root[data-theme='dark'] .secondary {
+    background: var(--surface-2);
+    border-color: #3a4569;
+    color: var(--ink);
+  }
+  :root[data-theme='dark'] .secondary:hover {
+    background: var(--surface-3);
+  }
+
+  /* Tableaux */
+  :root[data-theme='dark'] th {
+    background: #1a2238;
+    color: #a3abc2;
+  }
+  :root[data-theme='dark'] td {
+    border-color: #2a3350;
+  }
+  :root[data-theme='dark'] tbody tr:hover td {
+    background: #232c48;
+  }
+
+  /* Graphique en anneau : piste de fond */
+  :root[data-theme='dark'] .ring-figure svg > circle:first-of-type {
+    stroke: #2e3856;
+  }
+
+  /* Messages de confirmation */
+  :root[data-theme='dark'] .toast {
+    background: #2a2350;
+    border: 1px solid #3d3473;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  }
+
+  /* Bascule de thème */
+  .theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+/* Bascule de thème : visible dans les deux modes */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media screen {
+  /* Bandeaux des tableaux de bord : surface teintée de la couleur d'accent, liseré discret */
+  :root[data-theme='dark'] .role-banner,
+  :root[data-theme='dark'] [data-view='RC'] .role-banner,
+  :root[data-theme='dark'] [data-view='SAV'] .role-banner,
+  :root[data-theme='dark'] [data-view='Responsables'] .role-banner {
+    background:
+      linear-gradient(
+        115deg,
+        color-mix(in srgb, var(--purple) 24%, transparent),
+        color-mix(in srgb, var(--purple) 6%, transparent) 70%
+      ),
+      var(--surface);
+    border: 1px solid color-mix(in srgb, var(--purple) 34%, transparent);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  }
+  :root[data-theme='dark'] .role-banner p {
+    color: rgba(235, 238, 255, 0.85);
+  }
+  :root[data-theme='dark'] .role-banner button {
+    background: color-mix(in srgb, var(--purple) 12%, transparent);
+    border-color: color-mix(in srgb, var(--purple) 34%, transparent);
+    color: #f4f2ff;
+  }
+
+  /* Cartes de chiffres : fond uni (le liseré du haut garde la couleur de chaque carte) */
+  :root[data-theme='dark'] .kpi,
+  :root[data-theme='dark'] .kpi:nth-child(1),
+  :root[data-theme='dark'] .kpi:nth-child(2),
+  :root[data-theme='dark'] .kpi:nth-child(3),
+  :root[data-theme='dark'] .kpi:nth-child(4) {
+    background: var(--surface);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.03) inset,
+      0 8px 24px rgba(0, 0, 0, 0.18);
+  }
+
+  /* Titres des fenêtres */
+  :root[data-theme='dark'] .modal h2 {
+    color: var(--ink);
+  }
+}
+
+@media screen {
+  :root[data-theme='dark'] .role-banner h3 {
+    color: #fff;
+  }
+}
+
+/* Fondu au changement de thème (app/theme-toggle.tsx) */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.45s;
+  animation-timing-function: ease-in-out;
+}
+:root.theme-fading,
+:root.theme-fading *,
+:root.theme-fading *::before,
+:root.theme-fading *::after {
+  transition:
+    background-color 0.4s ease,
+    color 0.4s ease,
+    border-color 0.4s ease,
+    fill 0.4s ease,
+    stroke 0.4s ease,
+    box-shadow 0.4s ease !important;
+}
+
+@media screen {
+  /* Résultats des litiges : fraudes en rouge doux */
+  :root[data-theme='dark'] .outcome-kpis .is-fraud {
+    background: rgba(217, 84, 95, 0.1);
+    border-color: rgba(232, 110, 120, 0.38);
+  }
+  :root[data-theme='dark'] .outcome-kpis .is-fraud strong,
+  :root[data-theme='dark'] .outcome-bars li.is-fraud .outcome-name {
+    color: #ff9aa2;
+  }
+  :root[data-theme='dark'] .outcome-bar {
+    background: #2b3454;
+  }
+  /* Lien vers le guide et plateforme transporteur */
+  :root[data-theme='dark'] .guide-link {
+    background: #262c52;
+    border-color: #3e3f7a;
+    color: #c3b8ff;
+  }
+  :root[data-theme='dark'] .carrier-platform {
+    background: #1b2240;
+    border-color: #3d4573;
+  }
+  :root[data-theme='dark'] .carrier-platform-icon {
+    background: #2d2b5e;
+    color: #b7a9ff;
+  }
+}
+
+@media screen {
+  /* Suivi de bout en bout : pastilles de statut en sombre */
+  :root[data-theme='dark'] .list-mode {
+    background: #252e4b;
+  }
+  :root[data-theme='dark'] .list-mode button.active {
+    background: #343f66;
+    color: #d5ccff;
+    box-shadow: none;
+  }
+  :root[data-theme='dark'] .track-pill {
+    background: #2b3454;
+    color: #c3c9db;
+  }
+  :root[data-theme='dark'] .track-pill.ok,
+  :root[data-theme='dark'] .badge.ok {
+    background: rgba(70, 190, 110, 0.16);
+    color: #8fe0a8;
+  }
+  :root[data-theme='dark'] .track-pill.wait,
+  :root[data-theme='dark'] .anticipated-badge {
+    background: rgba(240, 170, 60, 0.16);
+    color: #ffc979;
+  }
+  :root[data-theme='dark'] .track-pill.ko {
+    background: rgba(217, 84, 95, 0.16);
+    color: #ff9aa2;
+  }
+  :root[data-theme='dark'] .tracking-table td.gap-open,
+  :root[data-theme='dark'] .gap-line .gap-open b {
+    color: #ff9aa2;
+  }
+  :root[data-theme='dark'] .tracking-table td.anticipated {
+    color: #ffc979;
+  }
+  :root[data-theme='dark'] .gap-line .gap-closed b {
+    color: #8fe0a8;
+  }
+}
+
+@media screen {
+  :root[data-theme='dark'] .tracking-table td:first-child {
+    background: var(--surface);
+  }
+  :root[data-theme='dark'] .tracking-table th:first-child {
+    background: #1a2238;
+  }
+}
+
+@media screen {
+  /* Dossiers de 2 000 € ou plus */
+  :root[data-theme='dark'] tbody tr.high-amount {
+    outline-color: #d9893a;
+  }
+  :root[data-theme='dark'] tbody tr.high-amount td {
+    background: rgba(240, 160, 75, 0.08);
+  }
+  :root[data-theme='dark'] tbody tr.high-amount td.amount {
+    color: #ffc27a;
+  }
+}
+
+@media screen {
+  /* Retour à la liste : ligne mise en évidence */
+  @keyframes row-flash-light-dark {
+    0%,
+    35% {
+      background: #3a3470;
+    }
+    100% {
+      background: transparent;
+    }
+  }
+  :root[data-theme='dark'] tbody tr.row-flash td {
+    animation-name: row-flash-light-dark;
+  }
+  :root[data-theme='dark'] tbody tr.row-flash {
+    outline-color: #a594ff;
+  }
+}
+
+@media screen {
+  /* Couleurs des enseignes, éclaircies pour rester lisibles sur fond sombre */
+  :root[data-theme='dark'] .brand-cybertek {
+    color: #f4f5fa;
+  }
+  :root[data-theme='dark'] .brand-cybertek-pro {
+    color: #b9bfcc;
+  }
+  :root[data-theme='dark'] .brand-grosbill {
+    color: #ff6f78;
+  }
+  :root[data-theme='dark'] .brand-grosbill-pro {
+    color: #86a8ff;
+  }
+  :root[data-theme='dark'] .brand-picata {
+    color: #63d68d;
+  }
+  :root[data-theme='dark'] .brand-boulanger {
+    color: #ffa24f;
+  }
+}
+
+@media screen {
+  /* Dossiers de 7 500 € ou plus */
+  :root[data-theme='dark'] tbody tr.very-high-amount {
+    outline-color: #e0565e;
+  }
+  :root[data-theme='dark'] tbody tr.very-high-amount td {
+    background: rgba(224, 67, 76, 0.1);
+  }
+  :root[data-theme='dark'] tbody tr.very-high-amount td.amount {
+    color: #ff8a91;
+  }
+}
+
+@media screen {
+  /* Repères de montant : barre à gauche et fond léger */
+  :root[data-theme='dark'] tbody tr.high-amount td {
+    background: rgba(240, 160, 75, 0.07);
+  }
+  :root[data-theme='dark'] tbody tr.very-high-amount td {
+    background: rgba(224, 67, 76, 0.09);
+  }
+  :root[data-theme='dark'] tbody tr.high-amount td:first-child {
+    box-shadow: inset 4px 0 0 #d9893a;
+  }
+  :root[data-theme='dark'] tbody tr.very-high-amount td:first-child {
+    box-shadow: inset 4px 0 0 #e0565e;
+  }
+}
+
+@media screen {
+  /* Couleur de l'enseigne, version éclaircie (Paramètres → Enseignes) */
+  :root[data-theme='dark'] .brand-name[data-brand] {
+    color: var(--brand-color-dark, var(--brand-color, var(--muted)));
+  }
+}
+
+@media screen {
+  /* Graphiques : choix du format, colonnes, déplacement */
+  :root[data-theme='dark'] .format-picker button.active,
+  :root[data-theme='dark'] .layout-lock.open {
+    background: #2d2b5e;
+    color: #c3b8ff;
+  }
+  :root[data-theme='dark'] .layout-lock {
+    background: var(--surface);
+  }
+  :root[data-theme='dark'] .visual-column-track {
+    background: #252e4b;
+  }
+  :root[data-theme='dark'] .slot-controls {
+    background: var(--surface-2);
+    border-color: #3d4573;
+  }
+  :root[data-theme='dark'] .layout-unlocked .visual-slot > .visual-card {
+    outline-color: #4a4f8a;
+  }
+}
