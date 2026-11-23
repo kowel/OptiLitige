@@ -102,6 +102,15 @@ export function contentDisposition(name, inline) {
   );
 }
 
+// Envoi direct, étape « confirm » : l'identifiant vient du navigateur. Il ne doit jamais désigner
+// une pièce déjà rattachée au dossier, sinon le nettoyage d'un envoi refusé effacerait le fichier
+// d'un autre agent (sans corbeille ni contrôle d'auteur). Renvoie '' si l'identifiant est libre.
+export function confirmConflict(attachments, attachmentId) {
+  return (attachments || []).some((a) => a && a.id === attachmentId)
+    ? 'Pièce jointe déjà ajoutée.'
+    : '';
+}
+
 // L'auteur d'une pièce jointe et les responsables peuvent la supprimer.
 export function canDeleteAttachment(attachment, member) {
   return (

@@ -94,3 +94,14 @@ test('Tailles lisibles', () => {
   assert.equal(formatSize(2048), '2 Ko');
   assert.equal(formatSize(3.5 * 1024 * 1024), '3,5 Mo');
 });
+
+test('Envoi direct : un identifiant déjà rattaché au dossier est refusé au « confirm »', async () => {
+  const { confirmConflict } = await import('../app/attachment-rules.mjs');
+  const list = [{ id: '11111111-1111-1111-1111-111111111111', name: 'photo.jpg' }];
+  // Identifiant d'une pièce existante (celle d'un autre agent) : refus, son fichier reste intact
+  assert.equal(confirmConflict(list, list[0].id), 'Pièce jointe déjà ajoutée.');
+  // Identifiant nouveau (donné par « prepare ») : accepté
+  assert.equal(confirmConflict(list, '22222222-2222-2222-2222-222222222222'), '');
+  assert.equal(confirmConflict(undefined, '22222222-2222-2222-2222-222222222222'), '');
+  assert.equal(confirmConflict([null], 'x'), '');
+});
