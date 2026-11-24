@@ -6,6 +6,7 @@ import { context, failure, out, updateRecord } from '../context';
 import {
   canDeleteAttachment,
   checkAttachment,
+  confirmConflict,
   REPRISE_LIMITS,
   cleanFileName,
   contentDisposition,
@@ -196,6 +197,9 @@ export async function POST(req: Request) {
         return signed(ctKeyOf(id, next), next);
       }
       if (step === 'confirm') {
+        // Identifiant déjà rattaché : refusé AVANT tout contrôle qui pourrait effacer le fichier
+        const taken = confirmConflict(JSON.parse(raw).attachments, givenId);
+        if (taken) return out({ error: taken }, 409);
         const bad = await received(ctKeyOf(id, givenId));
         if (bad) return bad;
       }
@@ -206,6 +210,8 @@ export async function POST(req: Request) {
           httpMetadata: { contentType: contentTypeOf(name) },
           customMetadata: { contentieuxId: id, name, uploadedBy: member.email },
         });
+      // Pièce ajoutée entre-temps avec le même identifiant : son fichier n'est jamais effacé
+      let ctDuplicate = false;
       const meta: Attachment = {
         id: attachmentId,
         name,
@@ -216,8 +222,11 @@ export async function POST(req: Request) {
       };
       const refusedSave = await updateContentieux(db, id, (c) => {
         const list = c.attachments || [];
-        if (list.some((a) => a.id === attachmentId))
-          return out({ error: 'Pièce jointe déjà ajoutée.' }, 409);
+        const taken = confirmConflict(list, attachmentId);
+        if (taken) {
+          ctDuplicate = true;
+          return out({ error: taken }, 409);
+        }
         const again = checkAttachment({ name, size: file.size }, list.length);
         if (again) return out({ error: again }, 400);
         c.attachments = [...list, meta];
@@ -227,7 +236,7 @@ export async function POST(req: Request) {
         ];
       });
       if (refusedSave) {
-        await store.delete(ctKeyOf(id, attachmentId));
+        if (!ctDuplicate) await store.delete(ctKeyOf(id, attachmentId));
         return refusedSave;
       }
       return out({ ok: true, attachment: meta });
@@ -261,9 +270,14 @@ export async function POST(req: Request) {
       return signed(keyOf(id, next), next);
     }
     if (step === 'confirm') {
+      // Identifiant déjà rattaché : refusé AVANT tout contrôle qui pourrait effacer le fichier
+      const taken = confirmConflict(existing.attachments, givenId);
+      if (taken) return out({ error: taken }, 409);
       const bad = await received(keyOf(id, givenId));
       if (bad) return bad;
     }
+    // Pièce ajoutée entre-temps avec le même identifiant : son fichier n'est jamais effacé
+    let duplicate = false;
     const attachmentId = givenId || crypto.randomUUID(),
       now = new Date().toISOString();
     if (data)
@@ -291,8 +305,11 @@ export async function POST(req: Request) {
         };
     const refused = await updateRecord(db, id, (r) => {
       const list = r.attachments || [];
-      if (list.some((a) => a.id === attachmentId))
-        return out({ error: 'Pièce jointe déjà ajoutée.' }, 409);
+      const taken = confirmConflict(list, attachmentId);
+      if (taken) {
+        duplicate = true;
+        return out({ error: taken }, 409);
+      }
       const again = checkAttachment({ name, size: file.size }, list.length, limits);
       if (again) return out({ error: again }, 400);
       r.attachments = [...list, meta];
@@ -308,7 +325,7 @@ export async function POST(req: Request) {
       ];
     });
     if (refused) {
-      await store.delete(keyOf(id, attachmentId));
+      if (!duplicate) await store.delete(keyOf(id, attachmentId));
       return refused;
     }
     return out({ ok: true, attachment: meta });
