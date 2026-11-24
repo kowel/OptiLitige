@@ -5,7 +5,7 @@ import Importer from './importer';
 import CommentComposer from './comment-composer';
 import { kpiCards, kpiRows, kpiScopes } from './kpi-data.mjs';
 import DashboardVisuals, { AnalyticsDashboard } from './dashboard-visuals';
-import { creditToday, resolveCredit } from './credit.mjs';
+import { creditIssuedStamp, creditToday, resolveCredit } from './credit.mjs';
 import { notificationKey } from './notifications.mjs';
 import TransportConversation from './transport-conversation';
 import Attachments from './attachments';
@@ -1216,6 +1216,7 @@ export default function App() {
                 clientStage: p.clientStage || '',
                 takenAt: r.status === 'Nouveau' && p.status === 'Pris en charge' ? now : r.takenAt,
                 ...creditState,
+                creditIssuedAt: creditIssuedStamp(r, creditState, now),
               });
               x.history = [
                 ...(r.history || []),

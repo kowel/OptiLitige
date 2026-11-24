@@ -303,6 +303,8 @@ export function applyCreditAction(r, b, member, settings = DEFAULT_CREDIT_SETTIN
     const amount = credit.approvedAmount ?? credit.amount;
     Object.assign(credit, { status: 'issued', statusAt: now, issue: { ...by, number, date } });
     Object.assign(r, applyIssuedCredit(r, amount, number, date));
+    // Prévient la personne à qui le dossier est attribué (app/alerts.mjs)
+    r.creditIssuedAt = now;
     log('Avoir émis dans l’ERP : n° ' + number + ' · ' + euros(amount));
     return { message: 'Avoir enregistré' };
   }

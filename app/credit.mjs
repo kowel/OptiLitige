@@ -48,3 +48,15 @@ export function resolveCredit(previous, input, now = new Date()) {
     creditCreated: provided || stored || (number !== oldNumber ? creditToday(now) : null),
   };
 }
+
+// Moment où l'avoir du dossier est renseigné (n° et montant), pour prévenir la personne à qui
+// le dossier est attribué (notification « Avoir émis », app/alerts.mjs). Un nouveau n° d'avoir
+// ou un montant qui passe de 0 à un montant réel donne un nouveau moment ; les dossiers repris
+// avec un avoir déjà renseigné n'en ont pas, pour ne pas inonder les notifications.
+export function creditIssuedStamp(previous, next, now) {
+  const number = String(next.creditNumber || '').trim();
+  if (!number || !(Number(next.credit) > 0)) return null;
+  const oldNumber = String(previous.creditNumber || '').trim();
+  if (number !== oldNumber || !(Number(previous.credit) > 0)) return now;
+  return previous.creditIssuedAt || null;
+}

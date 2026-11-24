@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { creditToday, resolveCredit } from '../app/credit.mjs';
+import { creditIssuedStamp, creditToday, resolveCredit } from '../app/credit.mjs';
 const now = new Date('2026-10-28T10:00:00Z');
 const empty = { creditNumber: '', creditIssued: false, credit: 0, creditCreated: null };
 test('Le numéro active l’avoir, conserve les centimes et date automatiquement', () => {
@@ -82,4 +82,32 @@ test('Les montants négatifs ou non numériques et dates invalides sont refusés
   assert.throws(() =>
     resolveCredit(empty, { creditNumber: 'AV-123', credit: 50, creditCreated: '2026-02-30' }, now),
   );
+});
+
+test('Moment d’émission de l’avoir : nouveau n° ou montant renseigné seulement', () => {
+  const t1 = '2026-11-24T09:00:00.000Z';
+  const t2 = '2026-11-25T09:00:00.000Z';
+  assert.equal(creditIssuedStamp({}, { creditNumber: 'AV-1', credit: 10 }, t1), t1);
+  // N° sans montant, puis montant ajouté plus tard
+  assert.equal(creditIssuedStamp({}, { creditNumber: 'AV-1', credit: 0 }, t1), null);
+  assert.equal(
+    creditIssuedStamp(
+      { creditNumber: 'AV-1', credit: 0 },
+      { creditNumber: 'AV-1', credit: 10 },
+      t2,
+    ),
+    t2,
+  );
+  // Autre modification du dossier : le moment ne change pas
+  const stored = { creditNumber: 'AV-1', credit: 10, creditIssuedAt: t1 };
+  assert.equal(creditIssuedStamp(stored, { creditNumber: 'AV-1', credit: 12 }, t2), t1);
+  // Nouveau n° : nouvelle notification
+  assert.equal(creditIssuedStamp(stored, { creditNumber: 'AV-2', credit: 10 }, t2), t2);
+  // Dossier repris avec un avoir : pas de moment inventé
+  assert.equal(
+    creditIssuedStamp({ creditNumber: 'AV-0', credit: 5 }, { creditNumber: 'AV-0', credit: 5 }, t2),
+    null,
+  );
+  // Avoir retiré
+  assert.equal(creditIssuedStamp(stored, { creditNumber: '', credit: 0 }, t2), null);
 });

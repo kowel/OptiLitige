@@ -69,7 +69,7 @@ import {
   resolveMember,
 } from '../profiles';
 import { clientStages, imputations as IMPUTATIONS } from '../../followup';
-import { creditToday, resolveCredit } from '../../credit.mjs';
+import { creditIssuedStamp, creditToday, resolveCredit } from '../../credit.mjs';
 import {
   DEFAULT_CONTENTIEUX_SETTINGS,
   applyContentieuxAction,
@@ -1704,7 +1704,13 @@ export async function POST(req: Request) {
         if (!Number.isFinite(Number(b.compensation)) || Number(b.compensation) < 0)
           return out({ error: 'Indemnisation invalide' }, 400);
         try {
+          const before = {
+            creditNumber: r.creditNumber,
+            credit: r.credit,
+            creditIssuedAt: r.creditIssuedAt,
+          };
           Object.assign(r, resolveCredit(r, b, new Date(now)));
+          r.creditIssuedAt = creditIssuedStamp(before, r, now);
         } catch (e) {
           return out({ error: e instanceof Error ? e.message : String(e) }, 400);
         }

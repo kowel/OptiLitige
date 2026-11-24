@@ -96,6 +96,35 @@ export function buildAlerts(
         unread: !read.has(key),
       });
     }
+    // Avoir émis (n° et montant renseignés) : la personne à qui le dossier est attribué est
+    // prévenue, même si elle n'a pas fait la demande (ex. dossier créé par le SAV et attribué).
+    // Pas de doublon si elle a elle-même demandé cet avoir (« Votre avoir est émis »).
+    if (
+      r?.creditIssuedAt &&
+      String(r.creditNumber || '').trim() &&
+      Number(r.credit) > 0 &&
+      String(r.assignee || '').toLowerCase() === email &&
+      !(r.credits || []).some(
+        (c) =>
+          c.status === 'issued' &&
+          c.statusAt === r.creditIssuedAt &&
+          String(c.requestedBy || '').toLowerCase() === email,
+      )
+    ) {
+      const key = 'credit:' + r.id + ':emis:' + r.creditIssuedAt;
+      out.credits.push({
+        key,
+        record: r,
+        date: r.creditIssuedAt,
+        title: 'Avoir émis : ' + r.ref,
+        text:
+          Number(r.credit).toFixed(2).replace('.', ',') +
+          ' € · n° ' +
+          String(r.creditNumber).trim() +
+          (r.title ? ' · ' + r.title : ''),
+        unread: !read.has(key),
+      });
+    }
     if (!open(r)) continue;
 
     // Litige ouvert en « Inversion » : notification prioritaire pour tous les comptes

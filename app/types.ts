@@ -161,6 +161,7 @@ export interface Dossier {
   creditNumber?: string;
   credit?: number;
   creditCreated?: string | null;
+  creditIssuedAt?: string | null; // moment où l'avoir est renseigné (notification « Avoir émis »)
   compensation?: number;
   compensationState?: string;
   /** Décision du transporteur sur la réclamation : Accepté, Partiel ou Refusé */

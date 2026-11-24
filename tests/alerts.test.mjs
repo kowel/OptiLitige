@@ -158,3 +158,62 @@ test('inversion : notification prioritaire pour tous les comptes, jusqu’à lec
     0,
   );
 });
+
+test('Avoir émis : la personne attribuée est prévenue, sans doublon ni anciens dossiers', () => {
+  const sav = { email: 'sav@x.fr', role: 'SAV' };
+  const matthieu = { email: 'matthieu@x.fr', role: 'Service Litige' };
+  const base = {
+    ref: 'AV',
+    title: 'Colis abîmé',
+    status: 'Résolu',
+    created: ago(100),
+    creator: 'sav@x.fr',
+    assignee: 'Matthieu@x.fr',
+    assignedAt: ago(99),
+  };
+  const recs = [
+    { ...base, id: 'v1', creditNumber: 'AV-1', credit: 49.9, creditIssuedAt: ago(1) },
+    // Dossier repris avec un avoir déjà renseigné : pas de moment d'émission, pas de notification
+    { ...base, id: 'v2', ref: 'AV2', creditNumber: 'AV-2', credit: 20 },
+    // N° sans montant : pas encore émis
+    { ...base, id: 'v3', ref: 'AV3', creditNumber: 'AV-3', credit: 0, creditIssuedAt: ago(1) },
+  ];
+  const mine = buildAlerts(recs, matthieu, { rules: [], now }).credits;
+  assert.equal(mine.length, 1);
+  assert.equal(mine[0].title, 'Avoir émis : AV');
+  assert.equal(mine[0].text, '49,90 € · n° AV-1 · Colis abîmé');
+  assert.match(mine[0].key, ALERT_KEY_PATTERN);
+  // Le créateur (SAV) n'est pas la personne attribuée
+  assert.equal(buildAlerts(recs, sav, { rules: [], now }).credits.length, 0);
+  // Lu : la notification ne revient pas
+  assert.equal(
+    buildAlerts(recs, matthieu, { rules: [], now, readKeys: [mine[0].key] }).credits[0].unread,
+    false,
+  );
+  // Attribuée et demandeuse du même avoir : une seule notification (« Votre avoir est émis »)
+  const at = ago(1);
+  const own = [
+    {
+      ...base,
+      id: 'v4',
+      creditNumber: 'AV-4',
+      credit: 30,
+      creditIssuedAt: at,
+      credits: [
+        {
+          id: 'k',
+          status: 'issued',
+          amount: 30,
+          reason: 'Retard de livraison',
+          requestedBy: 'matthieu@x.fr',
+          requestedAt: ago(5),
+          statusAt: at,
+        },
+      ],
+    },
+  ];
+  assert.deepEqual(
+    buildAlerts(own, { ...matthieu, role: 'RC' }, { rules: [], now }).credits.map((a) => a.title),
+    ['Votre avoir est émis : AV'],
+  );
+});
