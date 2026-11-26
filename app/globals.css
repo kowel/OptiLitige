@@ -8038,3 +8038,43 @@ td.row-end {
   margin: 10px 0 8px;
   font-size: 14px;
 }
+
+/* Formulaires de réclamation (Paramètres → Transporteurs, onglet Transporteur du dossier) */
+.claim-form-settings form {
+  display: grid;
+  gap: 12px;
+}
+.claim-form-carrier {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 12px;
+  padding: 10px 12px 12px;
+  border: 1px solid #e9e9f1;
+  border-radius: 9px;
+}
+.claim-form-carrier legend {
+  padding: 0 4px;
+  font-weight: 600;
+  font-size: 12px;
+}
+.claim-form-carrier .span2 {
+  grid-column: 1 / -1;
+}
+@media (max-width: 640px) {
+  .claim-form-carrier {
+    grid-template-columns: 1fr;
+  }
+}
+.carrier-platform-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 8px;
+}
+.carrier-platform-actions a.primary {
+  text-decoration: none;
+}
+.carrier-platform-note {
+  margin: 10px 0 0;
+  font-size: 13px;
+}

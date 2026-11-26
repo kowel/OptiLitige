@@ -391,6 +391,8 @@ export interface AppData {
     body: string;
   }[];
   trackingLinks?: Record<string, string>;
+  /** Formulaires de réclamation des transporteurs (app/claim-forms.mjs) */
+  claimForms?: Record<string, ClaimForm>;
   /** Connexions aux API des transporteurs (responsables) : état, jamais les clés */
   carrierApis?: Record<string, CarrierApiStatus>;
   /** Connexion Power BI (responsables) : état du jeton, jamais le jeton */
@@ -463,4 +465,11 @@ export interface MailSignature {
   /** Logo en image encodée (data:image/…;base64), vide sans logo */
   logo: string;
   logoWidth: number;
+}
+
+/** Formulaire de réclamation d'un transporteur (Paramètres → Transporteurs) */
+export interface ClaimForm {
+  url: string;
+  account: string;
+  note: string;
 }
