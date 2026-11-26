@@ -1956,6 +1956,11 @@ label.checkbox input {
   z-index: 100;
   font-size: 13px;
 }
+/* Écran de connexion affiché avant l'espace réel (site sans démonstration) */
+.modal-overlay.boot-screen {
+  background: #f6f5fa;
+  backdrop-filter: none;
+}
 .modal-overlay {
   position: fixed;
   inset: 0;
