@@ -21,9 +21,8 @@ import {
   stores,
   STORE_BRAND,
 } from '../../catalogs';
-import { CARRIER_DECISIONS, normalizeShipments } from '../../carrier-tracking.mjs';
+import { CARRIER_DECISIONS } from '../../carrier-tracking.mjs';
 import { claimImported } from '../../claim-imported.mjs';
-import { saveShipments } from '../shipments-store';
 import { syncWtShipments, wtSyncState } from '../welcometrack-store';
 import { WT_SHIPMENTS_KEY, normalizeAlertId } from '../../welcometrack.mjs';
 import { applyInfoEdit, changesText } from '../../edit-info.mjs';
@@ -51,7 +50,6 @@ import {
   normalizeApiKeys,
   testConnection,
 } from '../../tracking-providers.mjs';
-import { POWERBI_KEY, hashToken, newToken, powerbiStatus } from '../../powerbi.mjs';
 import { toggleWatch, watchKey } from '../../watch.mjs';
 import { addReminder, remindersKey, removeReminder } from '../../reminders.mjs';
 import { applyBulk, normalizeBulk } from '../../bulk-actions.mjs';
@@ -190,7 +188,6 @@ export async function GET(req: Request) {
       carrierDelays: 'carrier-delays',
       mailSignatures: 'mail-signatures',
       contentieuxSettings: isAdmin ? CONTENTIEUX_SETTINGS_KEY : '',
-      powerbiRow: isAdmin ? POWERBI_KEY : '',
       carrierApiRow: isAdmin ? CARRIER_API_KEY : '',
       wtSyncRow: isAdmin ? WT_SHIPMENTS_KEY : '',
       trashSettings: isAdmin ? TRASH_SETTINGS_KEY : '',
@@ -280,12 +277,6 @@ export async function GET(req: Request) {
       // Adresses de connexion et profils déclarés par adresse (Équipe & accès) : réservés aux
       // responsables ; les autres agents n'ont que la liste ci-dessus (noms pour les mentions)
       ...(member.role === 'Admin' ? { accounts: agents.results, memberProfiles: profileMap } : {}),
-      // Connexion Power BI : état du jeton (jamais le jeton), responsables
-      ...(member.role === 'Admin'
-        ? {
-            powerbi: powerbiStatus(JSON.parse(setting('powerbiRow')?.payload || 'null')),
-          }
-        : {}),
       // Connexions aux API des transporteurs : état seulement (jamais les clés), responsables
       ...(member.role === 'Admin'
         ? {
@@ -539,15 +530,6 @@ export async function POST(req: Request) {
         .run();
       return out({ ok: true });
     }
-    // Expéditions saisies par un responsable (en attendant ou en complément de l'outil
-    // d'expédition, qui les envoie par /api/shipments)
-    if (b.action === 'shipments') {
-      if (!admin) return out({ error: 'Accès admin requis' }, 403);
-      const { months, error } = normalizeShipments(b.entries);
-      if (error) return out({ error }, 400);
-      await saveShipments(db, months!, { source: 'Saisie manuelle', by: member.name });
-      return out({ ok: true });
-    }
     // Listes métier (Paramètres) : nouvelle liste, renommages éventuels dans les anciens
     // dossiers, couleurs des enseignes
     // Préférences d'affichage du compte connecté (tout service)
@@ -663,31 +645,6 @@ export async function POST(req: Request) {
           : 'Profils retirés de cette adresse',
       });
       return out({ ok: true, profiles });
-    }
-    // Jeton Power BI (Paramètres → Power BI) : créé ici, montré une seule fois ; seule son
-    // empreinte est gardée. Un nouveau jeton remplace l'ancien.
-    if (b.action === 'powerbi-token-new' || b.action === 'powerbi-token-remove') {
-      if (!admin) return out({ error: 'Accès admin requis' }, 403);
-      if (b.action === 'powerbi-token-remove') {
-        await db.prepare('DELETE FROM settings WHERE id=?').bind(POWERBI_KEY).run();
-        return out({ ok: true });
-      }
-      const token = newToken();
-      await db
-        .prepare(
-          'INSERT INTO settings(id,payload) VALUES (?,?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload',
-        )
-        .bind(
-          POWERBI_KEY,
-          JSON.stringify({
-            hash: await hashToken(token),
-            hint: '…' + token.slice(-4),
-            createdAt: new Date().toISOString(),
-            createdBy: member.name,
-          }),
-        )
-        .run();
-      return out({ ok: true, token });
     }
     // Connexions aux API des transporteurs (Paramètres → Connexions transporteurs)
     if (

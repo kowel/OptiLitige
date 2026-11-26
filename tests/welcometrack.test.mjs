@@ -120,13 +120,11 @@ test('Suivi par n° de suivi, sinon par n° de commande', async () => {
   );
 });
 
-test('API du transporteur si elle est réglée, sinon Welcometrack', async () => {
+test('Suivi de tous les transporteurs par Welcometrack', async () => {
   const wt = { WELCOMETRACK_API_KEY: 'k' };
-  assert.equal(trackingProvider('CHRONOPOST', { ...wt, LAPOSTE_OKAPI_KEY: 'x' }), 'laposte');
-  assert.equal(trackingProvider('CHRONOPOST', wt), 'welcometrack');
+  assert.equal(trackingProvider('CHRONOPOST', { ...wt, LAPOSTE_OKAPI_KEY: 'x' }), 'welcometrack');
   assert.equal(trackingProvider('TNT FRANCE', wt), 'welcometrack');
-  assert.equal(trackingProvider('TNT FRANCE', {}), '');
-  assert.equal(trackingProvider('FEDEX', {}), 'fedex');
+  assert.equal(trackingProvider('FEDEX', {}), 'welcometrack');
   const f = fakeFetch(() => ({ json: { traces: [] } }));
   const r = await fetchTracking('welcometrack', 'XA1', wt, f, {
     carrier: 'COLISSIMO',

@@ -812,7 +812,7 @@ test('API locale : expéditions (outil d’expédition et saisie responsable)', 
   let d = await get();
   assert.equal(d.shipments['2000-01'].COLISSIMO, 1234);
   assert.equal(d.shipmentsInfo.source, 'ERP (test)');
-  // Saisie d'un responsable : complète sans effacer
+  // Plus de saisie à la main : l'action n'existe plus, les chiffres restent ceux reçus
   const manual = await fetch(origin + '/api/data', {
     method: 'POST',
     headers: { Cookie: cookie, Origin: origin, 'Content-Type': 'application/json' },
@@ -821,10 +821,9 @@ test('API locale : expéditions (outil d’expédition et saisie responsable)', 
       entries: [{ month: '2000-01', carrier: 'TNT', count: 50 }],
     }),
   });
-  assert.equal(manual.status, 200);
+  assert.notEqual(manual.status, 200);
   d = await get();
-  assert.deepEqual(d.shipments['2000-01'], { COLISSIMO: 1234, TNT: 50 });
-  assert.equal(d.shipmentsInfo.source, 'Saisie manuelle');
+  assert.deepEqual(d.shipments['2000-01'], { COLISSIMO: 1234 });
 });
 
 test('API locale : listes métier (ajout, renommage dans les anciens dossiers, retrait)', async () => {
@@ -955,45 +954,6 @@ test('API locale : adresse partagée (profils), compte client obligatoire, inver
     await call({ action: 'member-profiles', email, profiles: '' }, '; optilitige_profil=Lydia');
   }
   assert.equal((await call()).body.me.profiles, undefined);
-});
-
-test('API locale : connexion Power BI (jeton, lecture seule, coupure)', async () => {
-  const login = await fetch(origin + '/signin-with-chatgpt?return_to=/', { redirect: 'manual' });
-  const cookie = login.headers.get('set-cookie').split(';')[0];
-  const post = (body) =>
-    fetch(origin + '/api/data', {
-      method: 'POST',
-      headers: { Cookie: cookie, Origin: origin, 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    }).then(async (r) => ({ status: r.status, body: await r.json() }));
-  const read = (token, table = 'litiges') =>
-    fetch(origin + '/api/powerbi?table=' + table, {
-      headers: token ? { Authorization: 'Bearer ' + token } : {},
-    });
-  const created = await post({ action: 'powerbi-token-new' });
-  assert.equal(created.status, 200);
-  const token = created.body.token;
-  try {
-    assert.equal((await read('')).status, 401);
-    assert.equal((await read(token + 'x')).status, 401);
-    const res = await read(token);
-    assert.equal(res.status, 200);
-    const rows = await res.json();
-    assert.ok(Array.isArray(rows) && rows.length > 0);
-    assert.ok('Transporteur' in rows[0] && 'EcartIndemnisation' in rows[0]);
-    assert.ok(!('customer' in rows[0]));
-    assert.ok(Array.isArray(await (await read(token, 'expeditions')).json()));
-    assert.equal((await read(token, 'autre')).status, 400);
-    // L'écran des responsables voit l'état, jamais le jeton
-    const data = await fetch(origin + '/api/data', { headers: { Cookie: cookie } }).then((r) =>
-      r.text(),
-    );
-    assert.ok(!data.includes(token));
-    assert.equal(JSON.parse(data).powerbi.active, true);
-  } finally {
-    await post({ action: 'powerbi-token-remove' });
-  }
-  assert.equal((await read(token)).status, 503);
 });
 
 test('API locale : espace Contentieux (saisie, liaison au dossier, version, suppression)', async () => {

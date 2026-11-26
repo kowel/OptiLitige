@@ -395,8 +395,6 @@ export interface AppData {
   claimForms?: Record<string, ClaimForm>;
   /** Connexions aux API des transporteurs (responsables) : état, jamais les clés */
   carrierApis?: Record<string, CarrierApiStatus>;
-  /** Connexion Power BI (responsables) : état du jeton, jamais le jeton */
-  powerbi?: PowerBiStatus;
   /** Délais des relances transporteur (jours) */
   carrierDelays?: { followupDays: number; responseDays: number };
   /** Dossiers suivis par l'agent (bouton « Suivre ce dossier ») */
@@ -455,15 +453,6 @@ export interface CarrierApiStatus {
   hint: string;
   savedAt: string;
   savedBy: string;
-}
-
-// État de la connexion Power BI (Paramètres → Power BI)
-export interface PowerBiStatus {
-  active: boolean;
-  createdAt: string;
-  createdBy: string;
-  hint: string;
-  lastUsedAt: string;
 }
 
 /** Signature d'e-mail (Paramètres → Signatures d'e-mail) */

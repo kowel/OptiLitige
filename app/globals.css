@@ -7011,44 +7011,6 @@ tbody tr.picked td {
   padding: 10px 14px;
 }
 
-/* Paramètres → Power BI */
-.powerbi-token {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  margin: 12px 0;
-}
-.powerbi-token code {
-  font-size: 12px;
-  background: #f6f3fa;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 6px 10px;
-  word-break: break-all;
-}
-.powerbi-howto {
-  margin-top: 14px;
-  font-size: 13px;
-}
-.powerbi-howto summary {
-  cursor: pointer;
-  font-weight: 600;
-}
-.powerbi-howto ol {
-  margin: 10px 0 10px 18px;
-  line-height: 1.7;
-}
-.powerbi-howto pre {
-  font-size: 11.5px;
-  background: #f6f3fa;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 10px 12px;
-  overflow-x: auto;
-  margin-bottom: 10px;
-}
-
 /* Bouton Apparence (en haut à droite) : mode et couleurs au choix de chaque agent */
 .appearance {
   position: relative;
