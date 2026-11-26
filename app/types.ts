@@ -415,6 +415,8 @@ export interface AppData {
   brandColors?: Record<string, string>;
   /** Origine et date de la dernière mise à jour des expéditions */
   shipmentsInfo?: { source: string; at: string; by?: string } | null;
+  /** Expéditions Welcometrack (admins) : n° de l'alerte interne et dernier import */
+  welcometrackSync?: WelcometrackSync;
   /** Vues enregistrées du service de l'agent */
   savedViews?: SavedView[];
   // Adresses de connexion (sans le détail des profils) et profils déclarés par adresse
@@ -436,6 +438,15 @@ export interface AppData {
 }
 
 // État d’une connexion API transporteur (Paramètres → Connexions transporteurs)
+export interface WelcometrackSync {
+  alertId: string;
+  at?: string;
+  by?: string;
+  ok?: boolean;
+  message?: string;
+  rows?: number;
+}
+
 export interface CarrierApiStatus {
   label: string;
   configured: boolean;

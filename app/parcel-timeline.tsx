@@ -29,6 +29,10 @@ interface TrackResult {
   step?: number;
   events?: TrackEvent[];
   demo?: boolean;
+  /** Suivi lu sur Welcometrack (tous transporteurs) */
+  via?: string;
+  /** Incident signalé par Welcometrack (avarie, retour, adresse…) */
+  issue?: string;
 }
 interface TrackItem {
   number: string;
@@ -175,6 +179,7 @@ export default function ParcelTimeline({
           {!folded && r?.status === 'ok' && (
             <small className="parcel-updated">
               {r.demo ? 'Exemple (démonstration)' : 'Mis à jour ' + ago(item.fetchedAt)}
+              {r.via === 'welcometrack' ? ' · via Welcometrack' : ''}
               {item.stale ? ' · transporteur injoignable, dernier suivi connu' : ''}
             </small>
           )}
@@ -265,6 +270,7 @@ export default function ParcelTimeline({
                   {r.delivered && r.deliveredAt && <small>Livré {when(r.deliveredAt)}</small>}
                 </div>
               </div>
+              {r.issue && <p className="parcel-note warn">Signalé par Welcometrack : {r.issue}</p>}
               {events.length > 0 && (
                 <ul className="parcel-events">
                   {shown.map((e, i) => (

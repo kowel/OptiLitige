@@ -6,8 +6,9 @@ import {
   cacheFresh,
   fetchTracking,
   mergeSecrets,
-  providerFor,
+  trackingProvider,
 } from '../../tracking-providers.mjs';
+import { wtCarriers } from '../welcometrack-store';
 import type { RecordRow, SettingRow } from '../../types';
 export const dynamic = 'force-dynamic';
 
@@ -39,11 +40,17 @@ export async function GET(req: Request) {
       .bind(CARRIER_API_KEY)
       .first<SettingRow>();
     const secrets = mergeSecrets(env, apiKeys ? JSON.parse(apiKeys.payload) : {});
+    // Welcometrack : identifiants des transporteurs (liste gardée une semaine)
+    let wtList: { id: number; name: string }[] | null = null;
+    const wtContext = async (carrier: string) => {
+      wtList ??= await wtCarriers(db, secrets.WELCOMETRACK_API_KEY);
+      return { carrier, order: String(record.order || '').trim(), wtCarriers: wtList };
+    };
     const items = await Promise.all(
       trackingLinksFor(record, links)
         .slice(0, 5)
         .map(async (t: { number: string; carrier: string; url: string }) => {
-          const provider = providerFor(t.carrier);
+          const provider = trackingProvider(t.carrier, secrets);
           if (!provider) return { ...t, provider: '', result: { status: 'unsupported' } };
           const cacheId = 'track:' + t.number;
           const cached = await db
@@ -55,7 +62,13 @@ export async function GET(req: Request) {
             return { ...t, provider, result: entry.result, fetchedAt: entry.fetchedAt };
           let result;
           try {
-            result = await fetchTracking(provider, t.number, secrets);
+            result = await fetchTracking(
+              provider,
+              t.number,
+              secrets,
+              fetch,
+              provider === 'welcometrack' ? await wtContext(t.carrier) : {},
+            );
           } catch {
             result = { status: 'error', message: 'Transporteur injoignable pour le moment.' };
           }
