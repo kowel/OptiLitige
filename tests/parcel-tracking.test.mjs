@@ -5,6 +5,7 @@ import {
   guessCarrier,
   normalizeTrackingLinks,
   trackingLinksFor,
+  trackingLinksWithDefaults,
   trackingNumbers,
 } from '../app/parcel-tracking.mjs';
 
@@ -37,14 +38,23 @@ test('liens de suivi d’un dossier', () => {
     'https://www.chronopost.fr/tracking-no-cms/suivi-page?listeNumerosLT=XN078764774FR',
   );
   const geodis = trackingLinksFor({ carrier: 'GEODIS', bt: '1G9PLLZ3ZUMT' });
-  assert.equal(geodis[0].url, '');
+  assert.equal(geodis[0].url, 'https://espace-client.france-express.com/index/');
   assert.equal(geodis[0].carrier, 'GEODIS');
+  const kuehne = trackingLinksFor({ carrier: 'KUEHNE NAGEL', bt: '1G9PLLZ3ZUMT' });
+  assert.equal(kuehne[0].url, '');
+  // Adresses des admins : complètent les adresses par défaut
+  const merged = trackingLinksWithDefaults({ GEODIS: 'https://g.fr/{numero}' });
+  assert.equal(merged.GEODIS, 'https://g.fr/{numero}');
+  assert.equal(merged['FRANCE EXPRESS'], 'https://espace-client.france-express.com/index/');
 });
 
 test('adresses contrôlées avant enregistrement', () => {
   assert.deepEqual(normalizeTrackingLinks(DEFAULT_TRACKING_LINKS).links, DEFAULT_TRACKING_LINKS);
   assert.ok(normalizeTrackingLinks({ GEODIS: 'http://a.fr/{numero}' }).error);
-  assert.ok(normalizeTrackingLinks({ GEODIS: 'https://a.fr/' }).error);
+  // Sans {numero} : accepté (la page s'ouvre, le numéro se colle)
+  assert.deepEqual(normalizeTrackingLinks({ GEODIS: 'https://a.fr/' }).links, {
+    GEODIS: 'https://a.fr/',
+  });
   assert.ok(normalizeTrackingLinks({ GEODIS: 'javascript:alert(1)//{numero}' }).error);
   assert.deepEqual(
     normalizeTrackingLinks({ geodis: ' https://a.fr/?n={numero} ', TNT: '' }).links,

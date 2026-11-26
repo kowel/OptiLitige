@@ -3,15 +3,26 @@
 // remplacé par le numéro ; les responsables peuvent la corriger dans Paramètres → Liens de suivi.
 
 // Adresses vérifiées le 12/11/2026 avec de vrais numéros (Chronopost et TNT affichent les étapes
-// en direct ; La Poste est la page officielle de suivi Colissimo). Pas d'adresse sûre trouvée
-// pour GEODIS, FRANCE EXPRESS et KUEHNE NAGEL : à renseigner dans Paramètres.
+// en direct ; La Poste est la page officielle de suivi Colissimo). France Express et GEODIS :
+// espace client France Express. KUEHNE NAGEL : à renseigner dans Paramètres.
+// Les adresses réglées par les admins complètent celles-ci (trackingLinksWithDefaults).
 /** @type {Record<string, string>} */
 export const DEFAULT_TRACKING_LINKS = {
   CHRONOPOST: 'https://www.chronopost.fr/tracking-no-cms/suivi-page?listeNumerosLT={numero}',
   COLISSIMO: 'https://www.laposte.fr/outils/suivre-vos-envois?code={numero}',
   TNT: 'https://www.tnt.fr/public/suivi_colis/recherche/visubontransport.do?bonTransport={numero}',
   FEDEX: 'https://www.fedex.com/fedextrack/?trknbr={numero}',
+  // Espace client France Express (filiale de GEODIS), donné le 26/11/2026 : le numéro n'est pas
+  // dans l'adresse, il se colle sur la page (bouton « Copier » de la fiche)
+  'FRANCE EXPRESS': 'https://espace-client.france-express.com/index/',
+  GEODIS: 'https://espace-client.france-express.com/index/',
 };
+
+/** Adresses par défaut, remplacées transporteur par transporteur par celles des admins */
+export const trackingLinksWithDefaults = (saved) => ({
+  ...DEFAULT_TRACKING_LINKS,
+  ...(saved || {}),
+});
 
 const key = (carrier) =>
   String(carrier || '')
@@ -37,8 +48,7 @@ export function normalizeTrackingLinks(input) {
     }
     if (parsed.protocol !== 'https:')
       return { error: 'L’adresse de ' + k + ' doit commencer par https://' };
-    if (!url.includes('{numero}'))
-      return { error: 'L’adresse de ' + k + ' doit contenir {numero} à la place du numéro.' };
+    // {numero} facultatif : sans lui, la page s'ouvre et le numéro se colle à la main
     links[k] = url;
   }
   return { links };
