@@ -39,6 +39,7 @@ import { DEFAULT_CLAIM_TEMPLATES, normalizeTemplates } from '../../claim-templat
 import { DEFAULT_SIGNATURES, normalizeSignatures } from '../../mail-signatures.mjs';
 import { TRASH_SETTINGS_KEY, normalizeTrashSettings } from '../../trash-settings.mjs';
 import { DEFAULT_TRACKING_LINKS, normalizeTrackingLinks } from '../../parcel-tracking.mjs';
+import { CLAIM_FORMS_KEY, normalizeClaimForms } from '../../claim-forms.mjs';
 import {
   API_FIELDS,
   CARRIER_API_KEY,
@@ -178,6 +179,7 @@ export async function GET(req: Request) {
       brandColors: 'brand-colors',
       prefs: 'prefs:' + String(member.email).toLowerCase(),
       trackingLinks: 'tracking-links',
+      claimForms: CLAIM_FORMS_KEY,
       watching: watchKey(member.email),
       reminders: remindersKey(member.email),
       carrierDelays: 'carrier-delays',
@@ -227,6 +229,7 @@ export async function GET(req: Request) {
       brandColors = setting('brandColors'),
       prefs = setting('prefs'),
       trackingLinks = setting('trackingLinks'),
+      claimForms = setting('claimForms'),
       watching = setting('watching'),
       reminders = setting('reminders'),
       carrierDelays = setting('carrierDelays'),
@@ -317,6 +320,7 @@ export async function GET(req: Request) {
       prefs: prefs ? JSON.parse(prefs.payload) : { charts: {}, layouts: {} },
       // Adresses de suivi des colis par transporteur (Paramètres → Liens de suivi)
       trackingLinks: trackingLinks ? JSON.parse(trackingLinks.payload) : DEFAULT_TRACKING_LINKS,
+      claimForms: claimForms ? JSON.parse(claimForms.payload) : {},
       // Dossiers suivis par l'agent (bouton « Suivre ce dossier »)
       watching: watching ? JSON.parse(watching.payload) : [],
       // Rappels personnels (« Me rappeler le… »)
@@ -683,6 +687,18 @@ export async function POST(req: Request) {
           'INSERT INTO settings(id,payload) VALUES (?,?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload',
         )
         .bind(CARRIER_API_KEY, JSON.stringify(stored))
+        .run();
+      return out({ ok: true });
+    }
+    if (b.action === 'claim-forms') {
+      if (!admin) return out({ error: 'Accès admin requis' }, 403);
+      const { forms, error } = normalizeClaimForms(b.forms);
+      if (error) return out({ error }, 400);
+      await db
+        .prepare(
+          'INSERT INTO settings(id,payload) VALUES (?,?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload',
+        )
+        .bind(CLAIM_FORMS_KEY, JSON.stringify(forms))
         .run();
       return out({ ok: true });
     }
