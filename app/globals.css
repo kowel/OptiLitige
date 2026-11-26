@@ -4984,6 +4984,34 @@ button.kpi:focus-visible {
   display: grid;
   gap: 12px;
 }
+/* Paramètres → Expéditions : import depuis l'alerte Welcometrack */
+.welcometrack-import {
+  border: 1px solid #e6e0ec;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin: 4px 0 14px;
+}
+.welcometrack-import h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  font-size: 15px;
+}
+.shipment-settings form.welcometrack-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+}
+.welcometrack-form label {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+}
+.welcometrack-form input {
+  width: 150px;
+}
 .badge.ok {
   background: #e3f5e6;
   color: #237a3b;

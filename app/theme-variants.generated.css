@@ -1370,6 +1370,9 @@
     background: #524321;
     color: #fac88a
 }
+:root[data-theme='dark'] .welcometrack-import {
+    border: 1px solid #212840
+}
 :root[data-theme='dark'] .badge.ok {
     background: #21522a;
     color: #9ee5b2
@@ -3680,6 +3683,9 @@
 :root[data-theme='dark'][data-dark='graphite'] .anticipated-badge {
     background: #524321;
     color: #fac88a
+}
+:root[data-theme='dark'][data-dark='graphite'] .welcometrack-import {
+    border: 1px solid #3a3a41
 }
 :root[data-theme='dark'][data-dark='graphite'] .badge.ok {
     background: #21522a;
@@ -6310,6 +6316,9 @@
 :root[data-theme='light'][data-light='ardoise'] .anticipated-badge {
     background: #fff3d9;
     color: #a35f0b
+}
+:root[data-theme='light'][data-light='ardoise'] .welcometrack-import {
+    border: 1px solid #e4e5e8
 }
 :root[data-theme='light'][data-light='ardoise'] .badge.ok {
     background: #e3f5e6;

@@ -1402,6 +1402,8 @@ export default function App() {
               ? ' dossiers importés lui sont rattachés'
               : ' dossier importé lui est rattaché'),
         );
+      if (p.action === 'welcometrack-sync') setNotice('Expéditions importées de Welcometrack');
+      if (p.action === 'welcometrack-alert') setNotice('N° de l’alerte Welcometrack enregistré');
       return true;
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -4707,6 +4709,9 @@ export default function App() {
                             carriers={data.catalogs?.carriers || carriers}
                             busy={busy}
                             onSave={(entries) => action({ action: 'shipments', entries })}
+                            welcometrack={data.welcometrackSync}
+                            welcometrackConnected={!!data.carrierApis?.welcometrack?.configured}
+                            onWelcometrack={(body) => action(body as ActionPayload)}
                           />
                           <section className="panel settings-panel">
                             <div className="integration-icon">

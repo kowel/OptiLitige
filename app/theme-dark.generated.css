@@ -1368,6 +1368,9 @@
     background: #524321;
     color: #fac88a
 }
+:root[data-theme='dark'] .welcometrack-import {
+    border: 1px solid #4f3964
+}
 :root[data-theme='dark'] .badge.ok {
     background: #21522a;
     color: #9ee5b2
