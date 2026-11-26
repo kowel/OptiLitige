@@ -254,7 +254,30 @@ test('API locale : identité, création, transitions, commentaires et import san
     (x) => x.sourceList === record.sourceList && x.sourceId === '2185',
   );
   assert.equal(ownedRecord.creator, 'agent.import@exemple.test');
+  assert.equal(ownedRecord.requesterEmail, 'agent.import@exemple.test');
   assert.equal(ownedRecord.priority, 'Haute');
+  // Demandeur sans compte à l'import : rattaché quand un admin ajoute son compte
+  await post({
+    action: 'import',
+    fileName: 'test.xlsx',
+    records: [{ ...record, externalId: '2189', requester: 'Futur Agent Ëssai' }],
+  });
+  const waiting = (await get()).records.find(
+    (x) => x.sourceList === record.sourceList && x.sourceId === '2189',
+  );
+  assert.equal(waiting.requesterEmail || '', '');
+  const futur = await post({
+    action: 'member',
+    name: 'FUTUR agent essai',
+    email: 'futur.agent@exemple.test',
+    role: 'RC',
+  });
+  assert.equal(futur.status, 200);
+  assert.ok(futur.body.claimed >= 1);
+  const claimedRecord = (await get()).records.find((x) => x.id === waiting.id);
+  assert.equal(claimedRecord.requesterEmail, 'futur.agent@exemple.test');
+  assert.equal(claimedRecord.creator, 'futur.agent@exemple.test');
+  assert.equal(claimedRecord.version, waiting.version + 1);
   // Conclusion envoyée par la requête jamais reprise telle quelle : déduite du résultat
   const forged = await post({
     action: 'import',

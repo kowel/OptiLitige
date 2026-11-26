@@ -22,6 +22,7 @@ import {
   STORE_BRAND,
 } from '../../catalogs';
 import { CARRIER_DECISIONS, normalizeShipments } from '../../carrier-tracking.mjs';
+import { claimImported } from '../../claim-imported.mjs';
 import { saveShipments } from '../shipments-store';
 import { applyInfoEdit, changesText } from '../../edit-info.mjs';
 import { normalizePrefs } from '../../user-prefs.mjs';
@@ -423,7 +424,35 @@ export async function POST(req: Request) {
           before: before ? { name: before.name, role: before.role } : null,
           after: { name, role: b.role },
         });
-      return out({ ok: true });
+      // Compte actif : ses dossiers repris de SharePoint (demandeur connu par son seul nom) lui
+      // sont rattachés, pour qu'il les retrouve dans « Mes dossiers »
+      let claimed = 0;
+      if (b.role !== 'Désactivé') {
+        const imported = (
+          await db
+            .prepare(
+              `SELECT id, payload, version FROM records
+               WHERE payload::jsonb->>'importedAt' IS NOT NULL
+                 AND COALESCE(payload::jsonb->>'requesterEmail', '') = ''`,
+            )
+            .all<{ id: string; payload: string; version: number }>()
+        ).results;
+        const updates = imported.flatMap((row) => {
+          const next = claimImported(JSON.parse(row.payload), { email, name }, member.name);
+          return next
+            ? [
+                db
+                  .prepare(
+                    'UPDATE records SET payload=?,version=version+1 WHERE id=? AND version=?',
+                  )
+                  .bind(JSON.stringify(next), row.id, row.version),
+              ]
+            : [];
+        });
+        if (updates.length)
+          claimed = (await db.batch(updates)).reduce((n, x) => n + (x.meta.changes || 0), 0);
+      }
+      return out({ ok: true, claimed });
     }
     if (member.role === 'Désactivé') return out({ error: 'Compte désactivé' }, 403);
     if (b.action === 'catalogs') {
@@ -943,8 +972,9 @@ export async function POST(req: Request) {
       const accounts = (
         await db.prepare("SELECT name, email FROM members WHERE role!='Désactivé'").all<Member>()
       ).results;
-      const ownerOf = (name: unknown) =>
-        accounts.find((m) => fold(m.name) === fold(name))?.email || member.email;
+      const accountOf = (name: unknown) =>
+        accounts.find((m) => fold(m.name) === fold(name))?.email.toLowerCase() || '';
+      const ownerOf = (name: unknown) => accountOf(name) || member.email;
       // Dossiers déjà repris sous un autre nom de liste (nom proposé à l'import différent de celui
       // de la première reprise) : même ID SharePoint et même date d'ouverture = déjà présent
       const sourceIds = [
@@ -1093,6 +1123,8 @@ export async function POST(req: Request) {
           carrierReplyAt: x.carrierReplyAt || null,
           transportMessages: [],
           creator: ownerOf(x.requester),
+          // Demandeur rattaché à son compte s'il existe ; sinon à l'ajout du compte (action « member »)
+          requesterEmail: accountOf(x.requester),
           importedBy: member.email,
           assignee: String(x.assignee || '').slice(0, 200),
           creditIssued: !!x.creditIssued || !!String(x.creditNumber || '').trim(),
