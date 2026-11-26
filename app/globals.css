@@ -7814,26 +7814,46 @@ td.row-end {
   font-weight: 500;
 }
 
-/* E-mail « Nouvelle demande d’avoir » proposé après la demande */
-.credit-mail {
+/* Avoirs à traiter (app/credit-queue.tsx) */
+.credit-queue {
+  display: grid;
+  gap: 12px;
+  padding: 20px 22px;
+}
+.credit-queue-head {
   display: flex;
   flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.credit-queue-head h2 {
+  display: flex;
   align-items: center;
-  gap: 10px;
-  margin: 12px 0;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: #eef4ff;
-  color: #2a4f8f;
-  font-size: 13px;
+  gap: 8px;
+  margin: 0 0 6px;
 }
-.credit-mail span {
-  flex: 1 1 260px;
+.credit-queue-head p {
+  max-width: 640px;
 }
-.credit-mail a.primary {
-  padding: 6px 12px;
-  border-radius: 7px;
-  text-decoration: none;
+.credit-queue .notification-tabs button {
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  font-size: 12px;
+  color: #8a789d;
+  background: #fff;
+}
+.credit-queue .notification-tabs button.active {
+  border-color: #8e77d4;
+  color: #5b45b0;
+  background: #f3effd;
+}
+.credit-queue .credit-card header .text-btn {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
 
 .dossier-recap-desc {

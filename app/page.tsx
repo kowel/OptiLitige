@@ -115,6 +115,7 @@ import {
   matchesAdvanced,
 } from './advanced-filters.mjs';
 import CreditPanel from './credit-panel';
+import CreditQueue from './credit-queue';
 import CreditSettings from './credit-settings';
 import {
   CREDIT_KINDS,
@@ -164,6 +165,7 @@ import {
   Bell,
   CircleHelp,
   Sun,
+  Receipt,
   BellRing,
   ChevronRight,
   CheckCircle2,
@@ -216,6 +218,7 @@ function pageAllowed(page: string, role: string) {
     return isAdmin(role);
   if (page === 'analytics') return seesAnalytics(role);
   if (page === 'my-data') return createsDisputes(role);
+  if (page === 'credits') return treatsDisputes(role);
   return true;
 }
 import {
@@ -1396,6 +1399,8 @@ export default function App() {
     litigeView = view === 'Service Litige' || view === 'Responsable',
     dashView = view === 'Responsable' ? 'Service Litige' : view,
     canEdit = treatsDisputes(demo ? view : me.role),
+    // Demandes d'avoir en attente (menu « Avoirs à traiter »)
+    creditsToDo = records.reduce((n, x) => n + openCredits(x).length, 0),
     canCreate = !['Service Litige', 'Responsable'].includes(demo ? view : me.role),
     listed = records.find((x) => x.id === selected),
     r = demo ? listed : detail && detail.id === selected ? detail : undefined,
@@ -2102,6 +2107,7 @@ export default function App() {
                     ['today', 'Ma journée', Sun],
                     ['overview', 'Vue d’ensemble', LayoutDashboard],
                     ['dossiers', 'Dossiers litiges', FolderOpen],
+                    ['credits', 'Avoirs à traiter', Receipt],
                     ['analytics', 'Analyses litiges', ChartNoAxesCombined],
                     ...(admin
                       ? [
@@ -2116,6 +2122,9 @@ export default function App() {
                 <Icon size={19} />
                 {label}
                 {key === 'dossiers' && <span className="nav-count">{active.length}</span>}
+                {key === 'credits' && creditsToDo > 0 && (
+                  <span className="nav-count">{creditsToDo}</span>
+                )}
                 {key === 'contentieux' && ctOpen > 0 && (
                   <span className={'nav-count' + (ctLate ? ' late' : '')}>{ctOpen}</span>
                 )}
@@ -2186,6 +2195,7 @@ export default function App() {
                         dossiers: 'Dossiers litiges',
                         analytics: 'Analyses litiges',
                         'my-data': 'Ma data',
+                        credits: 'Avoirs à traiter',
                         team: 'Équipe & accès',
                         contentieux: 'Contentieux',
                         'contentieux-analytics': 'Analyses contentieux',
@@ -2386,6 +2396,7 @@ export default function App() {
                             dossiers: 'Vos dossiers, au même endroit.',
                             analytics: 'Les chiffres derrière les dossiers.',
                             'my-data': 'Vos chiffres, vos dossiers.',
+                            credits: 'Chaque avoir, enregistré sans attendre.',
                             team: 'Une équipe, quatre services.',
                             contentieux: 'Chaque recours, dans les délais.',
                             'contentieux-analytics': 'Les chiffres derrière les contentieux.',
@@ -2407,6 +2418,8 @@ export default function App() {
                               'Dossiers litiges : mesurez les volumes, les délais et l’impact financier.',
                             'my-data':
                               'Les dossiers que vous avez créés : où ils en sont, leurs types, leurs enseignes et le délai jusqu’à la solution client.',
+                            credits:
+                              'Les demandes d’avoir en attente, tous dossiers confondus : saisissez les n° de l’ERP en une fois.',
                             'contentieux-analytics':
                               'Types, sujets, décisions, coûts et perte réelle des contentieux, mois par mois et d’une année sur l’autre.',
                             team: 'Associez chaque agent à son service et à ses responsabilités.',
@@ -2821,9 +2834,10 @@ export default function App() {
                       <>
                         <HelpTip id="avoirs" title="Avoirs">
                           <p>
-                            La RC, le SAV ou le Service Litige demande l’avoir ici, avec le motif et
-                            le montant. Le Service Litige fait l’avoir dans l’ERP, puis note son
-                            numéro ici : la demande est close.
+                            Le Service Litige demande l’avoir ici (motif, montant, imputation), fait
+                            l’avoir dans l’ERP, puis saisit son numéro et valide : l’avoir est émis.
+                            Les demandes en attente sont aussi regroupées dans « Avoirs à traiter ».
+                            La RC et le SAV consultent les avoirs sans pouvoir les modifier.
                           </p>
                         </HelpTip>
                         <CreditPanel
@@ -4296,6 +4310,16 @@ export default function App() {
                   />
                 )}
                 {page === 'my-data' && creatorView && <MyData records={records} email={me.email} />}
+                {page === 'credits' && canEdit && (
+                  <CreditQueue
+                    records={records}
+                    member={{ ...me, role: demo ? view : me.role }}
+                    settings={creditSettings}
+                    busy={busy}
+                    onAction={(x, payload) => action({ ...payload, id: x.id } as ActionPayload)}
+                    onOpen={(x) => open(x)}
+                  />
+                )}
                 {page === 'team' && admin && (
                   <>
                     <div className="team-intro">

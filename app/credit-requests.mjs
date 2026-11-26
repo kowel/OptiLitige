@@ -2,13 +2,16 @@
 // Partagé par l'API (app/api/data/route.ts), l'écran (app/credit-panel.tsx,
 // app/credit-settings.tsx), les notifications (app/alerts.mjs) et les tests.
 //
-// Circuit : Demandé → (Validation admin si la règle l'exige) → Accepté → Émis
-//           ou Refusé / Annulé. L'émission reporte le n° d'avoir ERP et le montant dans les
-//           champs « avoir » du dossier, pour que les tableaux de bord existants en tiennent compte.
+// Circuit : le service litige (ou un responsable, un admin) demande l'avoir, puis le traite en
+//           une seule étape : montant accordé + n° d'avoir ERP → Émis, ou Refusé / Annulé.
+//           Seuil facultatif (Paramètres → Avoirs) : au-delà, un admin valide (Validation admin).
+//           La RC et le SAV voient les avoirs sans pouvoir les modifier. L'émission reporte le
+//           n° d'avoir ERP et le montant dans les champs « avoir » du dossier, pour que les
+//           tableaux de bord existants en tiennent compte. « Accepté » ne sert plus qu'aux
+//           demandes acceptées avant le 26/11/2026 (circuit en deux étapes).
 
 import { stakeOf } from './advanced-filters.mjs';
 import { treatsDisputes } from './roles.mjs';
-import { normalizeCreditNotify } from './credit-mail.mjs';
 export const CREDIT_FAMILIES = {
   legal: 'Obligation légale',
   commercial: 'Geste commercial',
@@ -63,8 +66,6 @@ export const DEFAULT_CREDIT_SETTINGS = {
     'Geste commercial (Cybertek)',
   ],
   managerAbove: { legal: null, commercial: null, fees: null },
-  // Destinataire du mail « Nouvelle demande d'avoir » (app/credit-mail.mjs)
-  notify: { name: 'Pierre Mazeaud', email: '' },
 };
 
 // Motif proposé d'après le type du litige (l'agent peut le changer).
@@ -133,9 +134,7 @@ export function normalizeCreditSettings(input) {
       managerAbove[family] = Math.round(Number(v) * 100) / 100;
     else return { error: 'Seuil de validation invalide.' };
   }
-  const notify = normalizeCreditNotify(input?.notify);
-  if (!notify) return { error: 'Adresse e-mail du destinataire des demandes d’avoir invalide.' };
-  return { settings: { reasons, imputations, managerAbove, notify } };
+  return { settings: { reasons, imputations, managerAbove } };
 }
 
 // Un responsable doit-il valider ce montant pour cette famille ?
@@ -166,18 +165,24 @@ export function checkCreditRequest(req, record, settings = DEFAULT_CREDIT_SETTIN
 export function creditPermissions(credit, member) {
   const role = member?.role;
   const litige = treatsDisputes(role);
-  const mine =
-    String(credit?.requestedBy || '').toLowerCase() === String(member?.email || '').toLowerCase();
+  const open = OPEN_CREDIT_STATUSES.includes(credit?.status);
   return {
+    // Transmettre à un admin (montant au-delà du seuil réglé)
     decide:
       (credit?.status === 'requested' && litige) ||
       (credit?.status === 'manager' && role === 'Admin'),
-    // Le service litige peut refuser même quand la validation revient à un responsable
-    refuse: ['requested', 'manager'].includes(credit?.status) && litige,
-    issue: credit?.status === 'accepted' && litige,
-    cancel: ['requested', 'manager'].includes(credit?.status) && (mine || role === 'Admin'),
+    // Le service litige peut refuser même quand la validation revient à un admin
+    refuse: open && litige,
+    // Accepter et émettre en une étape (montant + n° d'avoir ERP)
+    issue:
+      (['requested', 'accepted'].includes(credit?.status) && litige) ||
+      (credit?.status === 'manager' && role === 'Admin'),
+    cancel: open && litige,
   };
 }
+
+/** Peut demander un avoir : service litige, responsables, admins (RC et SAV : lecture seule) */
+export const canRequestCredit = (member) => treatsDisputes(member?.role);
 
 // Reporte un avoir émis dans les champs « avoir » historiques du dossier (tableaux de bord).
 export function applyIssuedCredit(record, amount, number, date) {
@@ -213,6 +218,11 @@ export function applyCreditAction(r, b, member, settings = DEFAULT_CREDIT_SETTIN
   const fail = (error, status = 400) => ({ error, status });
 
   if (b.action === 'credit-request') {
+    if (!canRequestCredit(member))
+      return fail(
+        'Seuls le service litige, les responsables et les admins demandent un avoir.',
+        403,
+      );
     const q = b.request || {};
     const problem = checkCreditRequest(q, r, settings);
     if (problem) return fail(problem);
@@ -293,6 +303,20 @@ export function applyCreditAction(r, b, member, settings = DEFAULT_CREDIT_SETTIN
 
   if (b.action === 'credit-issue') {
     if (!can.issue) return fail('Seul le service litige peut enregistrer l’avoir émis.', 403);
+    // Montant accordé : celui saisi au traitement, sinon celui déjà accordé ou demandé
+    const previous = credit.approvedAmount ?? credit.amount;
+    const raw =
+      b.amount === undefined || b.amount === null || b.amount === '' ? previous : Number(b.amount);
+    if (!Number.isFinite(raw) || raw <= 0) return fail('Montant accordé invalide.');
+    const amount = Math.round(raw * 100) / 100;
+    // Seuil réglé : au-delà, un admin doit valider (sauf montant déjà validé par un admin)
+    const validated = credit.status === 'accepted' && amount === previous;
+    if (member.role !== 'Admin' && !validated && needsManager(credit.family, amount, settings))
+      return fail(
+        'Au-delà de ' +
+          euros(settings.managerAbove[credit.family]) +
+          ', un admin doit valider : transmettez la demande à un admin.',
+      );
     const number = String(b.number || '')
       .trim()
       .slice(0, 60);
@@ -300,8 +324,17 @@ export function applyCreditAction(r, b, member, settings = DEFAULT_CREDIT_SETTIN
     const date = String(b.date || '').slice(0, 10) || today;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || isNaN(Date.parse(date + 'T00:00:00Z')))
       return fail('Date d’émission invalide.');
-    const amount = credit.approvedAmount ?? credit.amount;
-    Object.assign(credit, { status: 'issued', statusAt: now, issue: { ...by, number, date } });
+    const comment = String(b.comment || '')
+      .trim()
+      .slice(0, 2000);
+    Object.assign(credit, {
+      status: 'issued',
+      statusAt: now,
+      approvedAmount: amount,
+      // Acceptation et émission en une étape : la décision est notée avec l'émission
+      ...(credit.decision ? {} : { decision: { ...by, comment } }),
+      issue: { ...by, number, date },
+    });
     Object.assign(r, applyIssuedCredit(r, amount, number, date));
     // Prévient la personne à qui le dossier est attribué (app/alerts.mjs)
     r.creditIssuedAt = now;
