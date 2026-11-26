@@ -2045,6 +2045,13 @@
 :root[data-theme='dark'] .carrier-cost-bar i {
     background: #552324
 }
+:root[data-theme='dark'] .claim-form-carrier {
+    border: 1px solid #21273d
+}
+:root[data-theme='dark'] .carrier-form-fields > div {
+    border: 1px solid #21273d;
+    background: #131725
+}
 :root[data-theme='dark'] {
     --purple: #a3a0ff;
     --ink: #c7d3ea;
@@ -4348,6 +4355,13 @@
 }
 :root[data-theme='dark'][data-dark='graphite'] .carrier-cost-bar i {
     background: #552324
+}
+:root[data-theme='dark'][data-dark='graphite'] .claim-form-carrier {
+    border: 1px solid #38383e
+}
+:root[data-theme='dark'][data-dark='graphite'] .carrier-form-fields > div {
+    border: 1px solid #38383e;
+    background: #212125
 }
 :root[data-theme='dark'][data-dark='graphite'] {
     --purple: #a594ff;
@@ -7318,5 +7332,21 @@
 }
 :root[data-theme='light'][data-light='ardoise'] .carrier-cost-bar i {
     background: #f6d7d8
+}
+:root[data-theme='light'][data-light='ardoise'] .claim-form-carrier {
+    border: 1px solid #ececee
+}
+:root[data-theme='light'][data-light='ardoise'] .carrier-platform-actions a.primary {
+    text-decoration: none
+}
+:root[data-theme='light'][data-light='ardoise'] .carrier-form-fields > div {
+    border: 1px solid #ececee;
+    background: #fff
+}
+:root[data-theme='light'][data-light='ardoise'] .carrier-form-fields dt {
+    color: var(--muted)
+}
+:root[data-theme='light'][data-light='ardoise'] .carrier-platform-actions a.secondary {
+    text-decoration: none
 }
 }

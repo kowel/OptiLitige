@@ -2043,4 +2043,11 @@
 :root[data-theme='dark'] .carrier-cost-bar i {
     background: #552324
 }
+:root[data-theme='dark'] .claim-form-carrier {
+    border: 1px solid #38385f
+}
+:root[data-theme='dark'] .carrier-form-fields > div {
+    border: 1px solid #38385f;
+    background: #202539
+}
 }

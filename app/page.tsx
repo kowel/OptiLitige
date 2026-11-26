@@ -30,6 +30,8 @@ import AmountAlertSettings from './amount-alert-settings';
 import ParcelTimeline from './parcel-timeline';
 import TrackingLinkSettings from './tracking-link-settings';
 import CarrierApiSettings from './carrier-api-settings';
+import ClaimFormSettings from './claim-form-settings';
+import { normalizeClaimForms } from './claim-forms.mjs';
 import PowerBiSettings from './powerbi-settings';
 import { invitationMail } from './invitation.mjs';
 import { DEFAULT_TRACKING_LINKS, normalizeTrackingLinks } from './parcel-tracking.mjs';
@@ -626,7 +628,9 @@ export default function App() {
     // Contentieux à ouvrir (ou à créer depuis un dossier litige) dans l'espace Contentieux
     [ctFocus, setCtFocus] = useState<ContentieuxFocus>(null),
     // Paramètres : partie litiges ou contentieux
-    [settingsTab, setSettingsTab] = useState<'litiges' | 'contentieux'>('litiges'),
+    [settingsTab, setSettingsTab] = useState<'litiges' | 'transporteurs' | 'contentieux'>(
+      'litiges',
+    ),
     [view, setView] = useState('RC'),
     [page, setPage] = useState('today'),
     [q, setQ] = useState(''),
@@ -1103,6 +1107,10 @@ export default function App() {
                 : x;
             });
           }
+        } else if (p.action === 'claim-forms') {
+          const { forms, error } = normalizeClaimForms(p.forms);
+          if (error) throw new Error(error);
+          n.claimForms = forms;
         } else if (p.action === 'tracking-links') {
           const { links, error } = normalizeTrackingLinks(p.links);
           if (error) throw new Error(error);
@@ -2880,14 +2888,23 @@ export default function App() {
                       <>
                         <HelpTip id="transporteur" title="Transporteur">
                           <p>
-                            Dans « Écrire un e-mail », choisissez un modèle : l’objet et le message
-                            sont remplis avec ce dossier, directement modifiables. Ouvrez l’e-mail
-                            dans votre messagerie (commercial transporteur ou adresse interne) ou
-                            copiez-le sur la plateforme, consignez-le, puis notez la date de
-                            transmission dans le traitement : les relances se programment seules.
+                            En haut, le formulaire de réclamation du transporteur, pré-rempli avec
+                            ce dossier : l’envoi direct arrivera avec son API ; en attendant, ouvrez
+                            le formulaire en ligne et collez-y le résumé. En bas, les e-mails aux
+                            commerciaux du transporteur, quand le service client tarde : choisissez
+                            un modèle, ouvrez l’e-mail dans votre messagerie, consignez-le, puis
+                            notez la date de transmission dans le traitement : les relances se
+                            programment seules.
                           </p>
                         </HelpTip>
-                        <CarrierPlatform record={r} canEdit={canEdit} />
+                        <CarrierPlatform
+                          record={r}
+                          canEdit={canEdit}
+                          forms={data.claimForms || {}}
+                        />
+                        <h3 className="transport-section-title">
+                          E-mails aux commerciaux du transporteur
+                        </h3>
                         <TransportConversation
                           key={
                             'echanges-' +
@@ -4514,6 +4531,7 @@ export default function App() {
                       {(
                         [
                           ['litiges', 'Paramètres litiges'],
+                          ['transporteurs', 'Transporteurs'],
                           ['contentieux', 'Paramètres contentieux'],
                         ] as const
                       ).map(([key, label]) => (
@@ -4529,6 +4547,53 @@ export default function App() {
                         </button>
                       ))}
                     </div>
+                    {settingsTab === 'transporteurs' && (
+                      <>
+                        <HelpTip id="parametres-transporteurs" title="Transporteurs">
+                          <p>
+                            Deux connexions différentes : les API de suivi des colis (étapes du
+                            colis dans chaque dossier) et les formulaires de réclamation du service
+                            client de chaque transporteur (ouverts depuis l’onglet Transporteur du
+                            dossier).
+                          </p>
+                        </HelpTip>
+                        <h2 className="settings-title">API de suivi des colis</h2>
+                        <div className="overview-grid">
+                          <CarrierApiSettings
+                            status={data.carrierApis || {}}
+                            demo={demo}
+                            onChanged={() => load(true)}
+                          />
+                          <TrackingLinkSettings
+                            key={'tracking-' + JSON.stringify(data.trackingLinks || {})}
+                            links={data.trackingLinks || DEFAULT_TRACKING_LINKS}
+                            carriers={data.catalogs?.carriers || carriers}
+                            busy={busy}
+                            onSave={(links) => action({ action: 'tracking-links', links })}
+                          />
+                        </div>
+                        <h2 className="settings-title">Formulaires de réclamation</h2>
+                        <div className="overview-grid">
+                          <ClaimFormSettings
+                            key={'claim-forms-' + JSON.stringify(data.claimForms || {})}
+                            forms={data.claimForms || {}}
+                            carriers={data.catalogs?.carriers || carriers}
+                            busy={busy}
+                            onSave={(forms) =>
+                              action({ action: 'claim-forms', forms } as ActionPayload)
+                            }
+                          />
+                          <CarrierDelaySettings
+                            key={'delays-' + JSON.stringify(carrierDelays)}
+                            delays={carrierDelays}
+                            busy={busy}
+                            onSave={(delays) =>
+                              action({ action: 'carrier-delays', delays } as ActionPayload)
+                            }
+                          />
+                        </div>
+                      </>
+                    )}
                     {settingsTab === 'contentieux' && (
                       <ContentieuxSettingsPanel
                         key={JSON.stringify(ctSettings)}
@@ -4605,14 +4670,6 @@ export default function App() {
                               })
                             }
                           />
-                          <CarrierDelaySettings
-                            key={'delays-' + JSON.stringify(carrierDelays)}
-                            delays={carrierDelays}
-                            busy={busy}
-                            onSave={(delays) =>
-                              action({ action: 'carrier-delays', delays } as ActionPayload)
-                            }
-                          />
                           <RepeatAlertSettings
                             key={'repeat-' + JSON.stringify(repeatAlerts)}
                             alerts={repeatAlerts}
@@ -4626,18 +4683,6 @@ export default function App() {
                             alerts={amountAlerts}
                             busy={busy}
                             onSave={(alerts) => action({ action: 'amount-alerts', alerts })}
-                          />
-                          <TrackingLinkSettings
-                            key={'tracking-' + JSON.stringify(data.trackingLinks || {})}
-                            links={data.trackingLinks || DEFAULT_TRACKING_LINKS}
-                            carriers={data.catalogs?.carriers || carriers}
-                            busy={busy}
-                            onSave={(links) => action({ action: 'tracking-links', links })}
-                          />
-                          <CarrierApiSettings
-                            status={data.carrierApis || {}}
-                            demo={demo}
-                            onChanged={() => load(true)}
                           />
                           <PowerBiSettings
                             status={data.powerbi}
