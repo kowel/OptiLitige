@@ -4,6 +4,9 @@
 //    developer.laposte.fr → secret LAPOSTE_OKAPI_KEY.
 //  - FedEx « Track API » : FedEx. Compte développeur FedEx → secrets FEDEX_CLIENT_ID et
 //    FEDEX_CLIENT_SECRET.
+//  - Welcometrack (API v6, lecture seule) : TOUS les transporteurs déclarés par Cybertek
+//    (app/welcometrack.mjs) → clé WELCOMETRACK_API_KEY. Sert quand le transporteur n'a pas
+//    d'API branchée ci-dessus (TNT, GEODIS, France Express, Kuehne+Nagel…).
 //  Les clés se règlent dans Paramètres → Connexions transporteurs (responsables), ou comme
 //  secrets du serveur (informatique) ; la valeur de l'outil passe en premier.
 //
@@ -11,13 +14,25 @@
 // branchée : la fiche propose alors le lien vers leur page de suivi.
 // Le résultat de chaque numéro est gardé 30 minutes (7 jours une fois le colis livré).
 
+import { fetchWtTracking, testWelcometrack } from './welcometrack.mjs';
+
 export const PROVIDERS = {
   laposte: { label: 'La Poste (Colissimo, Chronopost)', carriers: ['COLISSIMO', 'CHRONOPOST'] },
   fedex: { label: 'FedEx', carriers: ['FEDEX'] },
+  welcometrack: { label: 'Welcometrack (tous les transporteurs)', carriers: [] },
 };
 
 export const providerFor = (carrier) =>
   Object.keys(PROVIDERS).find((p) => PROVIDERS[p].carriers.includes(String(carrier || ''))) || '';
+
+// API à interroger pour un transporteur : la sienne si elle est réglée, sinon Welcometrack
+export function trackingProvider(carrier, secrets) {
+  const own = providerFor(carrier);
+  const ready = (p) => (API_FIELDS[p] || []).every((f) => String(secrets?.[f.name] || '').trim());
+  if (own && ready(own)) return own;
+  if (ready('welcometrack')) return 'welcometrack';
+  return own;
+}
 
 export const CACHE_MINUTES = 30;
 export const FINAL_CACHE_DAYS = 7;
@@ -124,7 +139,13 @@ export function parseFedex(json) {
 }
 
 // Interroge l'API du transporteur. `fetcher` = fetch (remplaçable dans les tests).
-export async function fetchTracking(provider, number, secrets, fetcher = fetch) {
+// `ctx` (Welcometrack) : { carrier, order, wtCarriers } du dossier.
+export async function fetchTracking(provider, number, secrets, fetcher = fetch, ctx = {}) {
+  if (provider === 'welcometrack')
+    return fetchWtTracking(
+      { ...ctx, number, key: String(secrets.WELCOMETRACK_API_KEY || '').trim() },
+      fetcher,
+    );
   if (provider === 'laposte') {
     const key = String(secrets.LAPOSTE_OKAPI_KEY || '').trim();
     if (!key) return { status: 'not-configured' };
@@ -217,6 +238,7 @@ export const API_FIELDS = {
     { name: 'FEDEX_CLIENT_ID', label: 'Client ID (API Key)' },
     { name: 'FEDEX_CLIENT_SECRET', label: 'Client secret (Secret Key)' },
   ],
+  welcometrack: [{ name: 'WELCOMETRACK_API_KEY', label: 'Clé API (en-tête xapikey)' }],
 };
 
 /** Contrôle des valeurs saisies pour un fournisseur ; renvoie { values } ou { error } */
@@ -238,6 +260,7 @@ const fieldsOf = () => Object.values(API_FIELDS).flat();
 
 /** Secrets utilisés pour interroger les API : valeur de l'outil, sinon secret du serveur */
 export function mergeSecrets(env, stored) {
+  /** @type {Record<string, string>} */
   const out = {};
   for (const { name } of fieldsOf()) {
     const fromTool = Object.values(stored || {}).find((p) => p?.values?.[name])?.values?.[name];
@@ -272,6 +295,7 @@ export async function testConnection(provider, secrets, fetcher = fetch) {
   if (!fields) return { ok: false, message: 'Transporteur inconnu.' };
   if (!fields.every((f) => secrets?.[f.name]))
     return { ok: false, message: 'Connexion non configurée.' };
+  if (provider === 'welcometrack') return testWelcometrack(secrets.WELCOMETRACK_API_KEY, fetcher);
   try {
     if (provider === 'laposte') {
       // Numéro fictif : une clé valide répond « numéro inconnu », une clé refusée 401 / 403

@@ -11,6 +11,8 @@ const HELP: Record<string, string> = {
   laposte:
     'Clé gratuite sur developer.laposte.fr (API « Suivi v2 »). Elle sert pour Colissimo et Chronopost.',
   fedex: 'Compte développeur FedEx (developer.fedex.com), projet avec l’API « Track ».',
+  welcometrack:
+    'Clé API Welcometrack (v6). Lecture seule : suivi de tous les colis déclarés par Cybertek, quel que soit le transporteur (TNT, GEODIS, France Express, Kuehne+Nagel…), et nombre d’expéditions (Paramètres → Expéditions). Utilisée quand le transporteur n’a pas sa propre connexion ci-dessus.',
 };
 
 async function post(body: Record<string, unknown>) {

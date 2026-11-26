@@ -24,6 +24,8 @@ import {
 import { CARRIER_DECISIONS, normalizeShipments } from '../../carrier-tracking.mjs';
 import { claimImported } from '../../claim-imported.mjs';
 import { saveShipments } from '../shipments-store';
+import { syncWtShipments, wtSyncState } from '../welcometrack-store';
+import { WT_SHIPMENTS_KEY, normalizeAlertId } from '../../welcometrack.mjs';
 import { applyInfoEdit, changesText } from '../../edit-info.mjs';
 import { normalizePrefs } from '../../user-prefs.mjs';
 import {
@@ -106,6 +108,8 @@ interface ListRow {
   activity: string | null;
 }
 export const dynamic = 'force-dynamic';
+// Import des expéditions Welcometrack (alerte de plusieurs milliers de lignes, page par page)
+export const maxDuration = 300;
 const TYPES = disputeTypes;
 const STATUSES = ['Nouveau', 'Pris en charge', 'En attente RC', 'Résolu', 'Réouvert'];
 // Champs lourds retirés de la liste : ils ne servent qu'à l'écran de détail d'un dossier,
@@ -188,6 +192,7 @@ export async function GET(req: Request) {
       contentieuxSettings: isAdmin ? CONTENTIEUX_SETTINGS_KEY : '',
       powerbiRow: isAdmin ? POWERBI_KEY : '',
       carrierApiRow: isAdmin ? CARRIER_API_KEY : '',
+      wtSyncRow: isAdmin ? WT_SHIPMENTS_KEY : '',
       trashSettings: isAdmin ? TRASH_SETTINGS_KEY : '',
     };
     const none = Promise.resolve({ results: [] as { id: string; payload: string }[] });
@@ -285,6 +290,8 @@ export async function GET(req: Request) {
       ...(member.role === 'Admin'
         ? {
             carrierApis: apiStatus(env, JSON.parse(setting('carrierApiRow')?.payload || '{}')),
+            // Expéditions lues sur l'alerte Welcometrack : n° de l'alerte, dernier import
+            welcometrackSync: JSON.parse(setting('wtSyncRow')?.payload || '{"alertId":""}'),
           }
         : {}),
       types: config ? JSON.parse(config.payload) : TYPES,
@@ -718,6 +725,35 @@ export async function POST(req: Request) {
         .bind(CARRIER_API_KEY, JSON.stringify(stored))
         .run();
       return out({ ok: true });
+    }
+    // Expéditions Welcometrack (Paramètres → Expéditions) : n° de l'alerte interne, puis import
+    if (b.action === 'welcometrack-alert' || b.action === 'welcometrack-sync') {
+      if (!admin) return out({ error: 'Accès admin requis' }, 403);
+      if (b.action === 'welcometrack-alert') {
+        const { alertId, error } = normalizeAlertId(b.alertId);
+        if (error) return out({ error }, 400);
+        const state = await wtSyncState(db);
+        await db
+          .prepare(
+            'INSERT INTO settings(id,payload) VALUES (?,?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload',
+          )
+          .bind(WT_SHIPMENTS_KEY, JSON.stringify({ ...state, alertId }))
+          .run();
+        return out({ ok: true });
+      }
+      const keys = await db
+        .prepare('SELECT payload FROM settings WHERE id=?')
+        .bind(CARRIER_API_KEY)
+        .first<SettingRow>();
+      const secrets = mergeSecrets(env, keys ? JSON.parse(keys.payload) : {});
+      const catalogRow = await db
+        .prepare('SELECT payload FROM settings WHERE id=?')
+        .bind('catalogs')
+        .first<SettingRow>();
+      const ours = (catalogRow ? JSON.parse(catalogRow.payload).carriers : null) || carriers;
+      const result = await syncWtShipments(db, secrets.WELCOMETRACK_API_KEY, ours, member.name);
+      if (!result.ok) return out({ error: result.message }, 400);
+      return out({ ok: true, message: result.message });
     }
     if (b.action === 'claim-forms') {
       if (!admin) return out({ error: 'Accès admin requis' }, 403);
