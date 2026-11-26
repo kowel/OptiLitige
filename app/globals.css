@@ -7814,26 +7814,49 @@ td.row-end {
   font-weight: 500;
 }
 
-/* E-mail « Nouvelle demande d’avoir » proposé après la demande */
-.credit-mail {
+/* Avoirs à traiter (app/credit-queue.tsx) */
+.credit-queue {
+  display: grid;
+  gap: 12px;
+  padding: 20px 22px;
+}
+.credit-queue-head {
   display: flex;
   flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.credit-queue-head h2 {
+  display: flex;
   align-items: center;
-  gap: 10px;
-  margin: 12px 0;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: #eef4ff;
-  color: #2a4f8f;
-  font-size: 13px;
+  gap: 8px;
+  margin: 0 0 6px;
 }
-.credit-mail span {
-  flex: 1 1 260px;
+.credit-queue-head p {
+  max-width: 640px;
 }
-.credit-mail a.primary {
-  padding: 6px 12px;
-  border-radius: 7px;
-  text-decoration: none;
+.credit-queue .notification-tabs button {
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  font-size: 12px;
+  color: #8a789d;
+  background: #fff;
+}
+.credit-queue .notification-tabs button.active {
+  border-color: #8e77d4;
+  color: #5b45b0;
+  background: #f3effd;
+}
+.credit-queue-links {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.credit-queue .credit-open {
+  padding: 6px 10px;
 }
 
 .dossier-recap-desc {
@@ -7959,4 +7982,59 @@ td.row-end {
   align-items: center;
   gap: 4px;
   font-size: 12px;
+}
+
+/* Coût des transporteurs (app/carrier-cost-panel.tsx) */
+.carrier-cost-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  padding: 4px 20px 16px;
+}
+.carrier-cost-kpis > div {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid #e9e9f1;
+  border-radius: 9px;
+  background: #faf9fd;
+}
+.carrier-cost-kpis span {
+  font-size: 12px;
+  color: #8a8a9c;
+}
+.carrier-cost-kpis b {
+  font-size: 22px;
+}
+.carrier-cost-kpis small {
+  font-size: 11px;
+  color: #9a9aab;
+}
+.carrier-cost-kpis .loss {
+  border-color: #f1c4c6;
+  background: #fdf3f3;
+}
+.carrier-cost-kpis .loss b {
+  color: #c2383d;
+}
+.carrier-cost-bar {
+  position: relative;
+  display: inline-block;
+  min-width: 110px;
+  padding: 2px 6px;
+  isolation: isolate;
+}
+.carrier-cost-bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 4px;
+  background: #f6d7d8;
+  z-index: -1;
+}
+.carrier-cost-top {
+  padding: 6px 20px 0;
+}
+.carrier-cost-top h3 {
+  margin: 10px 0 8px;
+  font-size: 14px;
 }

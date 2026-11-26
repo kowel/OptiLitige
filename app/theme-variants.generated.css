@@ -585,6 +585,9 @@
 :root[data-theme='dark'] .toast {
     box-shadow: 0 8px 35px #46558622
 }
+:root[data-theme='dark'] .modal-overlay.boot-screen {
+    background: #141928
+}
 :root[data-theme='dark'] .modal {
     background: #131725
 }
@@ -2007,15 +2010,40 @@
     background: #131725;
     border: 1px solid #1d253f
 }
-:root[data-theme='dark'] .credit-mail {
-    background: #121931;
-    color: #a5c7eb
+:root[data-theme='dark'] .credit-queue .notification-tabs button {
+    color: #b8bdcd;
+    background: #131725
+}
+:root[data-theme='dark'] .credit-queue .notification-tabs button.active {
+    border-color: #988fe0;
+    color: #aface4;
+    background: #121931
 }
 :root[data-theme='dark'] .dossier-recap-desc {
     background: #141827
 }
 :root[data-theme='dark'] .transport-signature-preview {
     background: #131826
+}
+:root[data-theme='dark'] .carrier-cost-kpis > div {
+    border: 1px solid #21273d;
+    background: #141826
+}
+:root[data-theme='dark'] .carrier-cost-kpis span {
+    color: #b9bcc5
+}
+:root[data-theme='dark'] .carrier-cost-kpis small {
+    color: #b1b5c0
+}
+:root[data-theme='dark'] .carrier-cost-kpis .loss {
+    border-color: #70393c;
+    background: #4c1f1f
+}
+:root[data-theme='dark'] .carrier-cost-kpis .loss b {
+    color: #e59ea1
+}
+:root[data-theme='dark'] .carrier-cost-bar i {
+    background: #552324
 }
 :root[data-theme='dark'] {
     --purple: #a3a0ff;
@@ -2860,6 +2888,9 @@
 }
 :root[data-theme='dark'][data-dark='graphite'] .toast {
     box-shadow: 0 8px 35px #60616c22
+}
+:root[data-theme='dark'][data-dark='graphite'] .modal-overlay.boot-screen {
+    background: #242428
 }
 :root[data-theme='dark'][data-dark='graphite'] .modal {
     background: #212125
@@ -4283,15 +4314,40 @@
     background: #212125;
     border: 1px solid #36373e
 }
-:root[data-theme='dark'][data-dark='graphite'] .credit-mail {
-    background: #27282d;
-    color: #9fb8e5
+:root[data-theme='dark'][data-dark='graphite'] .credit-queue .notification-tabs button {
+    color: #c0c1c5;
+    background: #212125
+}
+:root[data-theme='dark'][data-dark='graphite'] .credit-queue .notification-tabs button.active {
+    border-color: #9e8bda;
+    color: #b1a6de;
+    background: #27282d
 }
 :root[data-theme='dark'][data-dark='graphite'] .dossier-recap-desc {
     background: #232327
 }
 :root[data-theme='dark'][data-dark='graphite'] .transport-signature-preview {
     background: #222226
+}
+:root[data-theme='dark'][data-dark='graphite'] .carrier-cost-kpis > div {
+    border: 1px solid #38383e;
+    background: #222327
+}
+:root[data-theme='dark'][data-dark='graphite'] .carrier-cost-kpis span {
+    color: #bebec0
+}
+:root[data-theme='dark'][data-dark='graphite'] .carrier-cost-kpis small {
+    color: #b7b7ba
+}
+:root[data-theme='dark'][data-dark='graphite'] .carrier-cost-kpis .loss {
+    border-color: #70393c;
+    background: #4c1f1f
+}
+:root[data-theme='dark'][data-dark='graphite'] .carrier-cost-kpis .loss b {
+    color: #e59ea1
+}
+:root[data-theme='dark'][data-dark='graphite'] .carrier-cost-bar i {
+    background: #552324
 }
 :root[data-theme='dark'][data-dark='graphite'] {
     --purple: #a594ff;
@@ -5264,6 +5320,9 @@
     background: #575c67;
     color: white;
     box-shadow: 0 8px 35px #51566122
+}
+:root[data-theme='light'][data-light='ardoise'] .modal-overlay.boot-screen {
+    background: #f7f7f8
 }
 :root[data-theme='light'][data-light='ardoise'] .modal-overlay {
     background: #282a2f65
@@ -6561,6 +6620,9 @@
 :root[data-theme='light'][data-light='ardoise'] .repeat-fraud {
     color: #c2414b
 }
+:root[data-theme='light'][data-light='ardoise'] .trash-settings fieldset {
+    border: 0
+}
 :root[data-theme='light'][data-light='ardoise'] .claim-templates {
     border: 1px solid var(--line);
     background: white
@@ -7205,12 +7267,15 @@
 :root[data-theme='light'][data-light='ardoise'] .dossier-recap-card dt {
     color: var(--muted)
 }
-:root[data-theme='light'][data-light='ardoise'] .credit-mail {
-    background: #f4f5f9;
-    color: #303a7a
+:root[data-theme='light'][data-light='ardoise'] .credit-queue .notification-tabs button {
+    border: 1px solid var(--line);
+    color: #767a84;
+    background: #fff
 }
-:root[data-theme='light'][data-light='ardoise'] .credit-mail a.primary {
-    text-decoration: none
+:root[data-theme='light'][data-light='ardoise'] .credit-queue .notification-tabs button.active {
+    border-color: #6e79c3;
+    color: #5d687f;
+    background: #f4f5f8
 }
 :root[data-theme='light'][data-light='ardoise'] .dossier-recap-desc {
     background: #f8f8f9
@@ -7233,5 +7298,25 @@
 }
 :root[data-theme='light'][data-light='ardoise'] .signature-item {
     border: 1px solid var(--line)
+}
+:root[data-theme='light'][data-light='ardoise'] .carrier-cost-kpis > div {
+    border: 1px solid #ececee;
+    background: #fafbfc
+}
+:root[data-theme='light'][data-light='ardoise'] .carrier-cost-kpis span {
+    color: #818388
+}
+:root[data-theme='light'][data-light='ardoise'] .carrier-cost-kpis small {
+    color: #8f9196
+}
+:root[data-theme='light'][data-light='ardoise'] .carrier-cost-kpis .loss {
+    border-color: #f1c4c6;
+    background: #fdf3f3
+}
+:root[data-theme='light'][data-light='ardoise'] .carrier-cost-kpis .loss b {
+    color: #c2383d
+}
+:root[data-theme='light'][data-light='ardoise'] .carrier-cost-bar i {
+    background: #f6d7d8
 }
 }

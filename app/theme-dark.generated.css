@@ -583,6 +583,9 @@
 :root[data-theme='dark'] .toast {
     box-shadow: 0 8px 35px #664a8222
 }
+:root[data-theme='dark'] .modal-overlay.boot-screen {
+    background: #23283e
+}
 :root[data-theme='dark'] .modal {
     background: #202539
 }
@@ -2005,14 +2008,39 @@
     background: #202539;
     border: 1px solid #3d3362
 }
-:root[data-theme='dark'] .credit-mail {
-    background: #1f2f4d;
-    color: #9fb8e5
+:root[data-theme='dark'] .credit-queue .notification-tabs button {
+    color: #c2b9cc;
+    background: #202539
+}
+:root[data-theme='dark'] .credit-queue .notification-tabs button.active {
+    border-color: #9e8bda;
+    color: #b1a6de;
+    background: #2c1f4d
 }
 :root[data-theme='dark'] .dossier-recap-desc {
     background: #22283d
 }
 :root[data-theme='dark'] .transport-signature-preview {
     background: #21263b
+}
+:root[data-theme='dark'] .carrier-cost-kpis > div {
+    border: 1px solid #38385f;
+    background: #22273c
+}
+:root[data-theme='dark'] .carrier-cost-kpis span {
+    color: #babac4
+}
+:root[data-theme='dark'] .carrier-cost-kpis small {
+    color: #b2b2bf
+}
+:root[data-theme='dark'] .carrier-cost-kpis .loss {
+    border-color: #70393c;
+    background: #4c1f1f
+}
+:root[data-theme='dark'] .carrier-cost-kpis .loss b {
+    color: #e59ea1
+}
+:root[data-theme='dark'] .carrier-cost-bar i {
+    background: #552324
 }
 }

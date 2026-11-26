@@ -16,8 +16,6 @@ interface CreditSettingsForm {
   reasons: Record<string, string>;
   imputations: string;
   managerAbove: Record<string, number | string>;
-  notifyName: string;
-  notifyEmail: string;
 }
 
 // Paramètres → Avoirs : motifs par famille, imputations et seuils de validation admin.
@@ -31,8 +29,6 @@ export default function CreditSettings({ settings, admin, busy, onSave }: Credit
     managerAbove: Object.fromEntries(
       Object.keys(CREDIT_FAMILIES).map((k) => [k, settings.managerAbove?.[k] ?? '']),
     ),
-    notifyName: settings.notify?.name ?? 'Pierre Mazeaud',
-    notifyEmail: settings.notify?.email ?? '',
   });
   const split = (t: string) =>
     t
@@ -47,7 +43,7 @@ export default function CreditSettings({ settings, admin, busy, onSave }: Credit
       <h2>Demandes d’avoir</h2>
       <p>
         Motifs proposés (un par ligne), imputations, et montant au-delà duquel un admin doit
-        valider. Laissez le seuil vide pour que le service litige valide seul, quel que soit le
+        valider. Laissez le seuil vide pour que le service litige émette seul, quel que soit le
         montant.
       </p>
       <form
@@ -59,7 +55,6 @@ export default function CreditSettings({ settings, admin, busy, onSave }: Credit
             ),
             imputations: split(f.imputations),
             managerAbove: f.managerAbove,
-            notify: { name: f.notifyName, email: f.notifyEmail },
           });
         }}
       >
@@ -96,31 +91,7 @@ export default function CreditSettings({ settings, admin, busy, onSave }: Credit
               value={f.imputations}
               onChange={(e) => setF({ ...f, imputations: e.target.value })}
             />
-            <small>Qui porte le coût de l’avoir : sert aux statistiques.</small>
-          </fieldset>
-          <fieldset disabled={!admin}>
-            <legend>E-mail de nouvelle demande d’avoir</legend>
-            <label>
-              Destinataire
-              <input
-                value={f.notifyName}
-                maxLength={100}
-                onChange={(e) => setF({ ...f, notifyName: e.target.value })}
-              />
-            </label>
-            <label>
-              Adresse e-mail
-              <input
-                type="email"
-                placeholder="prenom.nom@cybertek.fr"
-                value={f.notifyEmail}
-                onChange={(e) => setF({ ...f, notifyEmail: e.target.value })}
-              />
-            </label>
-            <small>
-              Après chaque demande d’avoir, l’agent peut ouvrir un e-mail tout prêt pour ce
-              destinataire. Sans adresse, aucun e-mail n’est proposé.
-            </small>
+            <small>Qui porte le coût de l’avoir : information notée sur la demande.</small>
           </fieldset>
         </div>
         {admin ? (
