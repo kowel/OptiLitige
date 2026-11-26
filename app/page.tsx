@@ -4313,6 +4313,7 @@ export default function App() {
                 {page === 'credits' && canEdit && (
                   <CreditQueue
                     records={records}
+                    members={data.members}
                     member={{ ...me, role: demo ? view : me.role }}
                     settings={creditSettings}
                     busy={busy}

@@ -2,12 +2,15 @@
 import { useState } from 'react';
 import { ArrowUpRight, Receipt } from 'lucide-react';
 import { CreditProcess, euros } from './credit-panel';
+import DossierRecap from './dossier-recap';
 import { CREDIT_FAMILIES, CREDIT_KINDS, CREDIT_STATUSES, openCredits } from './credit-requests.mjs';
 import { dateTime } from './datetime.mjs';
 import type { CreditRequest, CreditSettingsData, Dossier, Member } from './types';
 
 interface CreditQueueProps {
   records: Dossier[];
+  /** Agents (nom de la personne attribuée dans le récapitulatif) */
+  members: Member[];
   member: Member;
   settings: CreditSettingsData;
   busy: boolean;
@@ -30,12 +33,15 @@ const FILTERS = [
 // fin de semaine), sans ouvrir chaque dossier.
 export default function CreditQueue({
   records,
+  members,
   member,
   settings,
   busy,
   onAction,
   onOpen,
 }: CreditQueueProps) {
+  const agentName = (email?: string) =>
+    email ? members.find((m) => m.email === email)?.name || email : '';
   const [filter, setFilter] = useState<(typeof FILTERS)[number][0]>('all');
   const all = records
     .flatMap((r) => openCredits(r).map((c: CreditRequest) => ({ r, c })))
@@ -84,9 +90,18 @@ export default function CreditQueue({
                 {(CREDIT_STATUSES as Record<string, string>)[c.status]}
               </span>
               <b>{euros(c.approvedAmount ?? c.amount)}</b>
-              <button type="button" className="text-btn" onClick={() => onOpen(r)}>
-                {r.ref} <ArrowUpRight size={13} />
-              </button>
+              <span className="credit-queue-links">
+                {/* Récapitulatif du dossier au survol, comme dans « Dossiers litiges » */}
+                <DossierRecap r={r} agent={agentName(r.assignee)} />
+                <button
+                  type="button"
+                  className="secondary credit-open"
+                  title={'Ouvrir le dossier ' + r.ref}
+                  onClick={() => onOpen(r)}
+                >
+                  Ouvrir le dossier {r.ref} <ArrowUpRight size={13} />
+                </button>
+              </span>
             </header>
             <p>
               <b>{r.title}</b>

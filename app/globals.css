@@ -7849,11 +7849,14 @@ td.row-end {
   color: #5b45b0;
   background: #f3effd;
 }
-.credit-queue .credit-card header .text-btn {
+.credit-queue-links {
   margin-left: auto;
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 8px;
+}
+.credit-queue .credit-open {
+  padding: 6px 10px;
 }
 
 .dossier-recap-desc {
