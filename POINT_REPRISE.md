@@ -213,6 +213,7 @@ Le projet est né sur ChatGPT Sites. Le code garde la compatibilité avec ce mod
 | 26/11/2026           | **Bouton « retour » du navigateur / de la souris** (kowel seulement) : chaque écran du menu et chaque dossier ouvert devient une étape de l'historique (`history.pushState`, état `{ optilitige, page, selected }` ajouté aux repères internes de Next.js, sinon Next recharge la page) ; « retour » rouvre l'écran ou le dossier précédent (`goBackTo`, `app/page.tsx`) au lieu de quitter l'outil. Vérifié : dossier → liste → Ma journée, puis « avancer », sans rechargement. |
 | 26/11/2026           | **Retour souris depuis un dossier** (kowel) : comme « Retour aux dossiers », la liste redescend jusqu'à la ligne du dossier quitté, qui clignote en bleu (`setReturnTo` dans `goBackTo`). |
 | 26/11/2026           | **Icône d'onglet « oL »** (`app/icon.svg`, repris dans `public/favicon.svg`) : la pastille violette du menu, à la place du globe générique du navigateur. |
+| 26/11/2026           | **Icône d'onglet selon le thème** (`app/theme-favicon.tsx`) : l'icône « oL » reprend le dégradé des boutons principaux du thème affiché (Violet, Ardoise, Minuit, Graphite, ou Auto), relu à chaque changement de thème (après le fondu). |
 ## 6. Fichiers concernés (repères)
 
 **Écran**

@@ -99,6 +99,7 @@ import { DEFAULT_REPEAT_ALERTS, normalizeRepeatAlerts, repeatInfo } from './repe
 import AlertList from './alert-list';
 import PrintSheet from './print-sheet';
 import ThemeToggle from './theme-toggle';
+import ThemeFavicon from './theme-favicon';
 import StatsTable from './stats-table';
 import CarrierCostPanel from './carrier-cost-panel';
 import PeriodPicker from './period-picker';
@@ -2153,6 +2154,8 @@ export default function App() {
           </span>
           OptiLitige<span className="brand-dot">.</span>
         </a>
+        {/* Icône de l'onglet aux couleurs du thème choisi */}
+        <ThemeFavicon />
         <div className="workspace group-workspace" title="Groupe Cybertek">
           <img src="/groupe-cybertek.png" alt="Groupe Cybertek" />
         </div>
