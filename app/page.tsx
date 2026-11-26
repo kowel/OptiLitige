@@ -228,6 +228,14 @@ import {
   matchingDossiers,
 } from './contentieux.mjs';
 
+// Mode démonstration (données fictives enregistrées dans le navigateur) : désactivé par défaut,
+// le site ouvre directement l'espace réel et renvoie vers la connexion Microsoft si besoin.
+// NEXT_PUBLIC_DEMO=1 (variable lue à la construction du site) le réactive.
+const DEMO_ENABLED = process.env.NEXT_PUBLIC_DEMO === '1';
+// Garde-fou : pas de renvoi automatique vers la connexion plus d'une fois par minute (évite une
+// boucle si la session n'est pas reconnue au retour de Microsoft)
+const SIGN_IN_REDIRECT_KEY = 'optilitige-signin-redirect';
+
 // Formulaire de création d'un dossier (montant vide tant qu'il n'est pas saisi)
 type NewDossierForm = Omit<Partial<Dossier>, 'amount' | 'disputeValue'> & {
   amount?: number | string;
@@ -598,7 +606,9 @@ function Badge({ status }: { status: string }) {
   );
 }
 export default function App() {
-  const [demo, setDemo] = useState(true),
+  const [demo, setDemo] = useState(DEMO_ENABLED),
+    // Espace réel chargé : tant qu'il ne l'est pas, un écran de connexion remplace l'outil
+    [booted, setBooted] = useState(DEMO_ENABLED),
     [signInLink, setSignInLink] = useState('/auth/connexion?return_to=/'),
     [data, setData] = useState<AppData>({
       records: fixtures(),
@@ -680,6 +690,7 @@ export default function App() {
     createdId = useRef(''),
     lastLoad = useRef(0);
   useEffect(() => {
+    if (!DEMO_ENABLED) return;
     try {
       const v2 = localStorage.getItem('rclient-demo-v2');
       const s = v2 || localStorage.getItem('rclient-demo-v1');
@@ -731,8 +742,12 @@ export default function App() {
     const res = await fetch('/api/data', { cache: 'no-store' }),
       d = (await res.json()) as AppData & { error?: string };
     if (!res.ok) {
-      if (typeof d.signIn === 'string' && d.signIn.startsWith('/')) setSignInLink(d.signIn);
-      throw new Error(d.error);
+      const failed = new Error(d.error) as Error & { signIn?: string };
+      if (typeof d.signIn === 'string' && d.signIn.startsWith('/')) {
+        setSignInLink(d.signIn);
+        failed.signIn = d.signIn;
+      }
+      throw failed;
     }
     // Une réponse plus ancienne qu'un chargement lancé après elle est ignorée
     if (seq !== loadSeq.current) return d;
@@ -751,6 +766,35 @@ export default function App() {
     tick();
     const timer = setInterval(tick, 60000);
     return () => clearInterval(timer);
+  }, []);
+  // Ouverture du site sans démonstration : chargement de l'espace réel, ou renvoi vers la
+  // connexion Microsoft quand l'agent n'est pas (ou plus) connecté
+  useEffect(() => {
+    if (DEMO_ENABLED) return;
+    // Les états ne changent qu'à la réponse du serveur (après l'appel), pas pendant l'effet
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    load()
+      .then(() => {
+        try {
+          sessionStorage.removeItem(SIGN_IN_REDIRECT_KEY);
+        } catch {}
+        setBooted(true);
+      })
+      .catch((e: Error & { signIn?: string }) => {
+        if (e.signIn) {
+          let recent = false;
+          try {
+            recent = Date.now() - Number(sessionStorage.getItem(SIGN_IN_REDIRECT_KEY) || 0) < 60000;
+            sessionStorage.setItem(SIGN_IN_REDIRECT_KEY, String(Date.now()));
+          } catch {}
+          if (!recent) {
+            window.location.assign(e.signIn);
+            return;
+          }
+        }
+        setError(e.message || 'Connexion impossible. Réessayez.');
+      });
+    // Une seule fois à l'ouverture du site
   }, []);
   async function fetchDetail(id: string) {
     const res = await fetch('/api/data?id=' + encodeURIComponent(id), { cache: 'no-store' }),
@@ -1997,6 +2041,30 @@ export default function App() {
     URL.revokeObjectURL(a.href);
     setNotice('Export téléchargé');
   }
+  if (!booted)
+    return (
+      <div className="modal-overlay boot-screen">
+        <section className="modal" aria-live="polite">
+          <span className="eyebrow">OPTILITIGE</span>
+          {error ? (
+            <>
+              <h2>Connexion impossible</h2>
+              <p role="alert" className="error">
+                {error}
+              </p>
+              <a className="primary" href={signInLink} target="_top">
+                Se connecter avec Microsoft
+              </a>
+            </>
+          ) : (
+            <>
+              <h2>Connexion à votre espace…</h2>
+              <p>Vous allez être redirigé vers la connexion Microsoft si nécessaire.</p>
+            </>
+          )}
+        </section>
+      </div>
+    );
   return (
     <div className="shell">
       <aside className="sidebar">
@@ -2286,10 +2354,12 @@ export default function App() {
                     : 'Dossiers partagés et enregistrés dans la base de données'}
                 </span>
               </span>
-              <button disabled={busy} onClick={switchMode}>
-                {demo ? 'Accéder à mon espace réel' : 'Revenir à la démonstration'}
-                <ArrowUpRight size={13} />
-              </button>
+              {DEMO_ENABLED && (
+                <button disabled={busy} onClick={switchMode}>
+                  {demo ? 'Accéder à mon espace réel' : 'Revenir à la démonstration'}
+                  <ArrowUpRight size={13} />
+                </button>
+              )}
             </div>
             {error && (
               <div role="alert" className="error">
@@ -5281,10 +5351,12 @@ export default function App() {
                   </span>
                   <ArrowUpRight size={15} />
                 </a>
-                <p>
-                  La démonstration contient des données fictives. L’espace réel utilise des comptes
-                  identifiés et une base partagée.
-                </p>
+                {DEMO_ENABLED && (
+                  <p>
+                    La démonstration contient des données fictives. L’espace réel utilise des
+                    comptes identifiés et une base partagée.
+                  </p>
+                )}
                 <button className="primary" onClick={() => setModal('')}>
                   C’est parti
                   <ArrowUpRight size={15} />
