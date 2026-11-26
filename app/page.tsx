@@ -953,6 +953,7 @@ export default function App() {
   async function action(p: ActionPayload) {
     setBusy(true);
     setError('');
+    let claimed = 0;
     try {
       if (demo) {
         const n = { ...data };
@@ -1308,8 +1309,9 @@ export default function App() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(p),
           }),
-          d = (await res.json()) as { error?: string; id?: string };
+          d = (await res.json()) as { error?: string; id?: string; claimed?: number };
         if (!res.ok) throw new Error(d.error);
+        claimed = d.claimed || 0;
         if (p.action === 'create') createdId.current = d.id || '';
         // Détail d'abord, liste ensuite : la liste n'est ainsi jamais plus récente que le
         // dossier ouvert, et le bandeau « modifié par un collègue » ne clignote pas.
@@ -1391,6 +1393,15 @@ export default function App() {
                                             ? 'Avoir mis à jour'
                                             : 'Modifications enregistrées',
       );
+      // Ajout d'un compte : ses dossiers importés de SharePoint lui ont été rattachés
+      if (claimed)
+        setNotice(
+          'Compte enregistré : ' +
+            claimed +
+            (claimed > 1
+              ? ' dossiers importés lui sont rattachés'
+              : ' dossier importé lui est rattaché'),
+        );
       return true;
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -5332,7 +5343,11 @@ export default function App() {
               <>
                 <span className="eyebrow">GESTION DES ACCÈS</span>
                 <h2>Compte agent</h2>
-                <p>Autorisez une adresse et associez-la à un service.</p>
+                <p>
+                  Autorisez une adresse et associez-la à un service. Les dossiers repris de
+                  SharePoint dont le demandeur porte ce nom (accents et majuscules ignorés) lui sont
+                  rattachés.
+                </p>
                 <form
                   onSubmit={async (e) => {
                     e.preventDefault();
