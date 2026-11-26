@@ -2888,11 +2888,13 @@ export default function App() {
                       <>
                         <HelpTip id="transporteur" title="Transporteur">
                           <p>
-                            Dans « Écrire un e-mail », choisissez un modèle : l’objet et le message
-                            sont remplis avec ce dossier, directement modifiables. Ouvrez l’e-mail
-                            dans votre messagerie (commercial transporteur ou adresse interne) ou
-                            copiez-le sur la plateforme, consignez-le, puis notez la date de
-                            transmission dans le traitement : les relances se programment seules.
+                            En haut, le formulaire de réclamation du transporteur, pré-rempli avec
+                            ce dossier : l’envoi direct arrivera avec son API ; en attendant, ouvrez
+                            le formulaire en ligne et collez-y le résumé. En bas, les e-mails aux
+                            commerciaux du transporteur, quand le service client tarde : choisissez
+                            un modèle, ouvrez l’e-mail dans votre messagerie, consignez-le, puis
+                            notez la date de transmission dans le traitement : les relances se
+                            programment seules.
                           </p>
                         </HelpTip>
                         <CarrierPlatform
@@ -2900,6 +2902,9 @@ export default function App() {
                           canEdit={canEdit}
                           forms={data.claimForms || {}}
                         />
+                        <h3 className="transport-section-title">
+                          E-mails aux commerciaux du transporteur
+                        </h3>
                         <TransportConversation
                           key={
                             'echanges-' +
