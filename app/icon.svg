@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!-- Icône d'onglet OptiLitige : la pastille « oL » du menu (dégradé violet) -->
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#a38aff"/>
+      <stop offset="1" stop-color="#6d4de0"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#g)"/>
+  <text x="31" y="45" text-anchor="middle" fill="#ffffff" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="700" letter-spacing="-3"><tspan font-size="40">o</tspan><tspan font-size="34">L</tspan></text>
+</svg>
