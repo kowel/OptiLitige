@@ -66,7 +66,7 @@ export function parseWelcometrack(json) {
   if (code === 8 || (code && !json.traces && !json.provider_name))
     return {
       status: 'not-found',
-      message: text(json.ErrorMsg || json.errormsg) || 'Colis inconnu de Welcometrack.',
+      message: WT_NOT_FOUND,
     };
   const traces = Array.isArray(json.traces) ? json.traces : json.tracking || [];
   const events = traces
@@ -133,57 +133,82 @@ export function wtCarrierId(wtCarriers, carrier) {
   return close?.id || 0;
 }
 
+// Transporteurs d'OptiLitige rangés sous un autre nom chez Welcometrack : France Express (filiale
+// de GEODIS) y est déclaré comme « Geodis » (constaté le 26/11/2026 sur le dossier IMP-990)
+const WT_ALIASES = { FRANCEEXPRESS: ['GEODIS'], TNTFRANCE: ['TNT'] };
+// Transporteurs essayés ensuite, si le colis n'est pas trouvé sous le sien
+const WT_FALLBACKS = [
+  'GEODIS',
+  'CHRONOPOST',
+  'COLISSIMO',
+  'TNT',
+  'FEDEX',
+  'KUEHNENAGEL',
+  'DPD',
+  'GLS',
+];
+export const WT_NOT_FOUND = 'Pas de suivi Welcometrack, aller sur le site du transporteur.';
+
+/** Identifiants Welcometrack à essayer, dans l'ordre (alias, transporteur du dossier, autres) */
+export function wtCarrierIds(wtCarriers, carrier) {
+  const list = (wtCarriers || []).map((c) => ({ ...c, key: compact(c.name) })).filter((c) => c.key);
+  const byKey = (k) => list.find((c) => c.key === k)?.id || 0;
+  const ids = [
+    ...(WT_ALIASES[compact(carrier)] || []).map(byKey),
+    WT_ALIASES[compact(carrier)] ? 0 : wtCarrierId(wtCarriers, carrier),
+    ...WT_FALLBACKS.map(byKey),
+  ].filter(Boolean);
+  return [...new Set(ids)];
+}
+
 /**
- * Suivi d'un colis : par n° de suivi et transporteur ; sinon par n° de commande (colis dont le
- * lien de suivi contient le numéro, ou le seul colis de la commande).
+ * Suivi d'un colis : par n° de suivi, sous le transporteur du dossier puis les autres
+ * transporteurs habituels ; sinon par n° de commande. Rien trouvé : WT_NOT_FOUND.
  */
 export async function fetchWtTracking(
   { number, carrier, order, key, wtCarriers },
   fetcher = fetch,
 ) {
   if (!key) return { status: 'not-configured' };
-  const carrierid = wtCarrierId(wtCarriers, carrier);
-  if (carrierid) {
+  const refused = {
+    status: 'error',
+    message: 'Clé Welcometrack refusée : vérifiez-la dans Paramètres.',
+  };
+  for (const carrierid of wtCarrierIds(wtCarriers, carrier)) {
     const { status, json } = await wtGet(
       '/deliveries/get',
       { delivery_reference: number, carrierid, language: 'FR', timeline: 'M', traces: 1 },
       key,
       fetcher,
     );
-    if (status === 401 || status === 403)
-      return {
-        status: 'error',
-        message: 'Clé Welcometrack refusée : vérifiez-la dans Paramètres.',
-      };
+    if (status === 401 || status === 403) return refused;
     if (status === 200) return parseWelcometrack(json);
-    if (!order) return parseWelcometrack({ errorcode: 8, ...json });
   }
-  if (!order)
-    return {
-      status: 'not-found',
-      message: 'Transporteur inconnu de Welcometrack et pas de n° de commande dans le dossier.',
-    };
-  const { status, json } = await wtGet(
-    '/orders/get',
-    { order_reference: order, language: 'FR', timeline: 'M', traces: 1 },
-    key,
-    fetcher,
-  );
-  if (status === 401 || status === 403)
-    return { status: 'error', message: 'Clé Welcometrack refusée : vérifiez-la dans Paramètres.' };
-  if (status !== 200) return parseWelcometrack({ errorcode: 8, ...json });
-  const packages = (json.packages || []).filter((p) => p?.deliveries);
-  const wanted = compact(number);
-  const pick =
-    packages.find((p) => wanted && compact(p.deliveries.delivery_trackingurl).includes(wanted)) ||
-    packages.find((p) => wanted && compact(p.package_reference).includes(wanted)) ||
-    (packages.length === 1 ? packages[0] : null);
-  if (!pick)
-    return {
-      status: 'not-found',
-      message: 'Commande trouvée dans Welcometrack, mais pas ce colis (' + number + ').',
-    };
-  return parseWelcometrack({ ...pick.deliveries, traces: pick.tracking || pick.deliveries.traces });
+  if (order) {
+    const { status, json } = await wtGet(
+      '/orders/get',
+      { order_reference: order, language: 'FR', timeline: 'M', traces: 1 },
+      key,
+      fetcher,
+    );
+    if (status === 401 || status === 403) return refused;
+    if (status === 200) {
+      const packages = (json.packages || []).filter((p) => p?.deliveries);
+      const wanted = compact(number);
+      const pick =
+        packages.find(
+          (p) => wanted && compact(p.deliveries.delivery_trackingurl).includes(wanted),
+        ) ||
+        packages.find((p) => wanted && compact(p.package_reference).includes(wanted)) ||
+        (packages.length === 1 ? packages[0] : null);
+      if (pick)
+        return parseWelcometrack({
+          ...pick.deliveries,
+          traces: pick.tracking || pick.deliveries.traces,
+        });
+    }
+  }
+  return { status: 'not-found', message: WT_NOT_FOUND };
 }
 
 /** Test de la clé : la liste des transporteurs répond-elle ? */

@@ -5755,6 +5755,14 @@ tbody tr.row-flash.very-high-amount {
   background: #fff4e5;
   color: #a8691b;
 }
+/* Pas de suivi Welcometrack : renvoi vers le site du transporteur */
+.parcel-fallback {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
 .spin {
   animation: parcel-spin 0.9s linear infinite;
 }

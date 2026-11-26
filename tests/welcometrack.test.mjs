@@ -6,7 +6,9 @@ import {
   fetchWtTracking,
   normalizeAlertId,
   parseWelcometrack,
+  WT_NOT_FOUND,
   wtCarrierId,
+  wtCarrierIds,
   wtDate,
 } from '../app/welcometrack.mjs';
 import { fetchTracking, trackingProvider } from '../app/tracking-providers.mjs';
@@ -80,10 +82,41 @@ test('Suivi Welcometrack : événements, étape, livraison, incident', () => {
   assert.equal(parseWelcometrack({ ErrorCode: 8, ErrorMsg: 'Aucune réponse' }).status, 'not-found');
 });
 
+test('France Express cherché sous Geodis, puis les autres transporteurs ; sinon message de repli', async () => {
+  const list = [...carriers, { id: 22, name: 'Geodis' }];
+  assert.equal(wtCarrierIds(list, 'FRANCE EXPRESS')[0], 22);
+  assert.equal(wtCarrierIds(list, 'TNT')[0], 7);
+  assert.ok(wtCarrierIds(list, 'TNT').includes(22));
+  const found = fakeFetch((u) =>
+    u.searchParams.get('carrierid') === '22'
+      ? {
+          json: {
+            provider_name: 'Geodis',
+            traces: [{ message: 'Pris en charge', date: '14/10/2026' }],
+          },
+        }
+      : { status: 404, json: { ErrorCode: 8 } },
+  );
+  const r = await fetchWtTracking(
+    { number: '1G3QUV94MPFH', carrier: 'FRANCE EXPRESS', key: 'k', wtCarriers: list },
+    found,
+  );
+  assert.equal(r.status, 'ok');
+  assert.equal(found.calls.length, 1);
+  const none = await fetchWtTracking(
+    { number: 'X1', carrier: 'TNT', order: '123', key: 'k', wtCarriers: list },
+    fakeFetch(() => ({ status: 404, json: { ErrorCode: 8 } })),
+  );
+  assert.equal(none.status, 'not-found');
+  assert.equal(none.message, WT_NOT_FOUND);
+});
+
 test('Suivi par n° de suivi, sinon par n° de commande', async () => {
   const f = fakeFetch((u) =>
     u.pathname.endsWith('/deliveries/get')
-      ? { json: { errorcode: 0, traces: [{ message: 'Pris en charge', date: '01/11/2026' }] } }
+      ? u.searchParams.get('delivery_reference') === 'XA1'
+        ? { json: { errorcode: 0, traces: [{ message: 'Pris en charge', date: '01/11/2026' }] } }
+        : { status: 404, json: { ErrorCode: 8 } }
       : {
           json: {
             packages: [
@@ -108,7 +141,7 @@ test('Suivi par n° de suivi, sinon par n° de commande', async () => {
     f,
   );
   assert.equal(byOrder.delivered, true);
-  assert.match(f.calls[1], /orders\/get\?order_reference=6550963/);
+  assert.match(f.calls.at(-1), /orders\/get\?order_reference=6550963/);
   assert.equal(
     (await fetchWtTracking({ number: 'X', carrier: 'GEODIS', key: 'k', wtCarriers: carriers }, f))
       .status,
