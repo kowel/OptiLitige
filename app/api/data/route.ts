@@ -40,7 +40,7 @@ import { DEFAULT_REPEAT_ALERTS, normalizeRepeatAlerts } from '../../repeat-custo
 import { DEFAULT_CLAIM_TEMPLATES, normalizeTemplates } from '../../claim-templates.mjs';
 import { DEFAULT_SIGNATURES, normalizeSignatures } from '../../mail-signatures.mjs';
 import { TRASH_SETTINGS_KEY, normalizeTrashSettings } from '../../trash-settings.mjs';
-import { DEFAULT_TRACKING_LINKS, normalizeTrackingLinks } from '../../parcel-tracking.mjs';
+import { normalizeTrackingLinks, trackingLinksWithDefaults } from '../../parcel-tracking.mjs';
 import { CLAIM_FORMS_KEY, normalizeClaimForms } from '../../claim-forms.mjs';
 import {
   API_FIELDS,
@@ -318,7 +318,9 @@ export async function GET(req: Request) {
       // Préférences d'affichage du compte (formats et disposition des graphiques)
       prefs: prefs ? JSON.parse(prefs.payload) : { charts: {}, layouts: {} },
       // Adresses de suivi des colis par transporteur (Paramètres → Liens de suivi)
-      trackingLinks: trackingLinks ? JSON.parse(trackingLinks.payload) : DEFAULT_TRACKING_LINKS,
+      trackingLinks: trackingLinksWithDefaults(
+        trackingLinks ? JSON.parse(trackingLinks.payload) : null,
+      ),
       claimForms: claimForms ? JSON.parse(claimForms.payload) : {},
       // Dossiers suivis par l'agent (bouton « Suivre ce dossier »)
       watching: watching ? JSON.parse(watching.payload) : [],

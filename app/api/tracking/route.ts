@@ -1,10 +1,11 @@
 import { env } from '../../server/env';
 import { context, failure, out } from '../context';
-import { DEFAULT_TRACKING_LINKS, trackingLinksFor } from '../../parcel-tracking.mjs';
+import { trackingLinksFor, trackingLinksWithDefaults } from '../../parcel-tracking.mjs';
 import {
   CARRIER_API_KEY,
   cacheFresh,
   fetchTracking,
+  fallbackProvider,
   mergeSecrets,
   trackingProvider,
 } from '../../tracking-providers.mjs';
@@ -15,8 +16,8 @@ export const dynamic = 'force-dynamic';
 // Suivi détaillé des colis d'un dossier, pour la fiche :
 //   GET /api/tracking?id=<dossier>[&refresh=1]
 // Pour chaque numéro du champ BT : étapes et événements lus sur Welcometrack, tous
-// transporteurs (app/tracking-providers.mjs), gardés en cache dans settings
-// (« wt-track:<numéro> »).
+// transporteurs, puis en secours sur l'API La Poste ou FedEx (app/tracking-providers.mjs),
+// gardés en cache dans settings (« wt-track:<numéro> »).
 export async function GET(req: Request) {
   try {
     const { db } = await context();
@@ -34,7 +35,7 @@ export async function GET(req: Request) {
       .prepare('SELECT payload FROM settings WHERE id=?')
       .bind('tracking-links')
       .first<SettingRow>();
-    const links = saved ? JSON.parse(saved.payload) : DEFAULT_TRACKING_LINKS;
+    const links = trackingLinksWithDefaults(saved ? JSON.parse(saved.payload) : null);
     // Clés réglées par les responsables (Paramètres), sinon secrets du serveur
     const apiKeys = await db
       .prepare('SELECT payload FROM settings WHERE id=?')
@@ -52,7 +53,7 @@ export async function GET(req: Request) {
       trackingLinksFor(record, links)
         .slice(0, 5)
         .map(async (t: { number: string; carrier: string; url: string }) => {
-          const provider = trackingProvider(t.carrier, secrets);
+          let provider = trackingProvider(t.carrier, secrets);
           if (!provider) return { ...t, provider: '', result: { status: 'unsupported' } };
           // « wt-track » : suivis Welcometrack (les anciens « track: » La Poste / FedEx sont ignorés)
           const cacheId = 'wt-track:' + t.number;
@@ -74,6 +75,20 @@ export async function GET(req: Request) {
             );
           } catch {
             result = { status: 'error', message: 'Transporteur injoignable pour le moment.' };
+          }
+          // Pas trouvé chez Welcometrack : API La Poste (Colissimo, Chronopost) ou FedEx (FedEx,
+          // TNT) en secours, si leur clé est réglée ; sinon on garde le message Welcometrack
+          const backup = result.status === 'ok' ? '' : fallbackProvider(t.carrier, secrets);
+          if (backup) {
+            try {
+              const second = await fetchTracking(backup, t.number, secrets);
+              if (second.status === 'ok') {
+                result = second;
+                provider = backup;
+              }
+            } catch {
+              // secours injoignable : le message Welcometrack reste affiché
+            }
           }
           const fetchedAt = new Date().toISOString();
           if (result.status === 'ok' || result.status === 'not-found')

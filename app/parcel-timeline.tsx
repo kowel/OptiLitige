@@ -179,7 +179,13 @@ export default function ParcelTimeline({
           {!folded && r?.status === 'ok' && (
             <small className="parcel-updated">
               {r.demo ? 'Exemple (démonstration)' : 'Mis à jour ' + ago(item.fetchedAt)}
-              {r.via === 'welcometrack' ? ' · via Welcometrack' : ''}
+              {r.via === 'welcometrack'
+                ? ' · via Welcometrack'
+                : r.via === 'laposte'
+                  ? ' · via La Poste (Welcometrack sans suivi)'
+                  : r.via === 'fedex'
+                    ? ' · via FedEx (Welcometrack sans suivi)'
+                    : ''}
               {item.stale ? ' · transporteur injoignable, dernier suivi connu' : ''}
             </small>
           )}

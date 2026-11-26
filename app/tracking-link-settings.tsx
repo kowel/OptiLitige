@@ -24,9 +24,10 @@ export default function TrackingLinkSettings({
       </div>
       <h2>Liens de suivi des colis</h2>
       <p>
-        Dans chaque dossier, le bouton « Voir le suivi en direct » ouvre la page de suivi du
+        Dans chaque dossier, le bouton « Page du transporteur » ouvre la page de suivi du
         transporteur avec le numéro du champ BT. Écrivez <code>{'{numero}'}</code> à l’endroit où
-        doit aller le numéro. Laissez vide si le transporteur n’a pas de page de suivi.
+        doit aller le numéro ; sans lui (espace client France Express par exemple), la page s’ouvre
+        et le numéro se colle à la main. Laissez vide si le transporteur n’a pas de page de suivi.
       </p>
       <form
         onSubmit={async (e) => {
