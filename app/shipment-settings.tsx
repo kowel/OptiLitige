@@ -5,17 +5,11 @@ import { carrierKey } from './carrier-tracking.mjs';
 import { dateTime } from './datetime.mjs';
 import type { WelcometrackSync } from './types';
 
-interface ShipmentEntry {
-  month: string;
-  carrier: string;
-  count: number;
-}
 interface ShipmentSettingsProps {
   shipments: Record<string, Record<string, number>>;
   info?: { source: string; at: string; by?: string } | null;
   carriers: string[];
   busy: boolean;
-  onSave: (entries: ShipmentEntry[]) => Promise<unknown>;
   /** Import depuis l'alerte interne Welcometrack (lecture seule) */
   welcometrack?: WelcometrackSync;
   welcometrackConnected: boolean;
@@ -101,28 +95,24 @@ function lastMonths(count = 6) {
 const monthLabel = (m: string) =>
   new Date(m + '-15').toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
 
+const count = (n?: number) => (n != null ? n.toLocaleString('fr-FR') : '–');
+
 // Paramètres → Expéditions : nombre d'expéditions par mois et par transporteur, pour le ratio
-// litiges / expéditions. Normalement reçu de l'outil d'expédition (POST /api/shipments) ;
-// les responsables peuvent compléter ou corriger à la main.
+// litiges / expéditions. Importé de Welcometrack (alerte interne), affiché en lecture seule :
+// plus de saisie à la main.
 export default function ShipmentSettings({
   shipments,
   info,
   carriers,
   busy,
-  onSave,
   welcometrack,
   welcometrackConnected,
   onWelcometrack,
 }: ShipmentSettingsProps) {
   const months = lastMonths();
-  const keys = [...new Set(carriers.map(carrierKey))];
-  const [form, setForm] = useState<Record<string, string>>(() =>
-    Object.fromEntries(
-      months.flatMap((m) =>
-        keys.map((c) => [m + '|' + c, shipments?.[m]?.[c] != null ? String(shipments[m][c]) : '']),
-      ),
-    ),
-  );
+  // Transporteurs de la liste, puis ceux reçus de Welcometrack qui n'y sont pas
+  const received = months.flatMap((m) => Object.keys(shipments?.[m] || {}));
+  const keys = [...new Set([...carriers.map(carrierKey), ...received])];
   const connected = !!info && info.source !== 'Saisie manuelle';
   return (
     <section className="panel settings-panel shipment-settings">
@@ -134,8 +124,8 @@ export default function ShipmentSettings({
         {connected ? 'Reçues de : ' + info!.source : 'Import Welcometrack à régler'}
       </span>
       <p>
-        Nombre d’expéditions par mois, pour calculer le ratio litiges / expéditions. Ils arrivent de
-        Welcometrack (ci-dessous) ; vous pouvez aussi les saisir ou les corriger à la main.
+        Nombre d’expéditions par mois, pour calculer le ratio litiges / expéditions. Ils sont
+        importés de Welcometrack (ci-dessous) chaque nuit.
       </p>
       <WelcometrackImport
         key={welcometrack?.alertId || ''}
@@ -150,54 +140,30 @@ export default function ShipmentSettings({
           {info.by ? ' (' + info.by + ')' : ''} le {dateTime(info.at)}
         </p>
       )}
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault();
-          const entries = Object.entries(form)
-            .filter(([, v]) => v.trim() !== '')
-            .map(([k, v]) => {
-              const [month, carrier] = k.split('|');
-              return { month, carrier, count: Number(v) };
-            });
-          await onSave(entries);
-        }}
-      >
-        <div className="table-scroll">
-          <table className="shipment-grid">
-            <thead>
-              <tr>
-                <th>Mois</th>
+      <div className="table-scroll">
+        <table className="shipment-grid">
+          <thead>
+            <tr>
+              <th>Mois</th>
+              {keys.map((c) => (
+                <th key={c}>{c}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {months.map((m) => (
+              <tr key={m}>
+                <td>{monthLabel(m)}</td>
                 {keys.map((c) => (
-                  <th key={c}>{c}</th>
+                  <td key={c} className="num">
+                    {count(shipments?.[m]?.[c])}
+                  </td>
                 ))}
               </tr>
-            </thead>
-            <tbody>
-              {months.map((m) => (
-                <tr key={m}>
-                  <td>{monthLabel(m)}</td>
-                  {keys.map((c) => (
-                    <td key={c}>
-                      <input
-                        aria-label={'Expéditions ' + c + ' ' + monthLabel(m)}
-                        type="number"
-                        min="0"
-                        step="1"
-                        value={form[m + '|' + c] ?? ''}
-                        onChange={(e) => setForm({ ...form, [m + '|' + c]: e.target.value })}
-                      />
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <button disabled={busy} className="primary">
-          <Check size={16} />
-          Enregistrer les expéditions
-        </button>
-      </form>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
   );
 }

@@ -20,8 +20,6 @@ import {
   NOT_CARRIER,
   indemnityGap,
   isAnticipatedCredit,
-  mergeShipments,
-  normalizeShipments,
   trackingCsv,
 } from './carrier-tracking.mjs';
 import TrackingTable from './tracking-table';
@@ -32,7 +30,6 @@ import TrackingLinkSettings from './tracking-link-settings';
 import CarrierApiSettings from './carrier-api-settings';
 import ClaimFormSettings from './claim-form-settings';
 import { normalizeClaimForms } from './claim-forms.mjs';
-import PowerBiSettings from './powerbi-settings';
 import { invitationMail } from './invitation.mjs';
 import { DEFAULT_TRACKING_LINKS, normalizeTrackingLinks } from './parcel-tracking.mjs';
 import EditInfoForm from './edit-info-form';
@@ -1168,11 +1165,6 @@ export default function App() {
           n.amountAlerts = alerts;
         } else if (p.action === 'credit-settings') {
           n.creditSettings = p.settings;
-        } else if (p.action === 'shipments') {
-          const { months, error } = normalizeShipments(p.entries);
-          if (error) throw new Error(error);
-          n.shipments = mergeShipments(data.shipments, months);
-          n.shipmentsInfo = { source: 'Saisie manuelle', by: me.name, at: now };
         } else if (p.action === 'reminder-add' || p.action === 'reminder-delete') {
           const list = data.remindersByUser?.[me.email] || [];
           const result =
@@ -4697,18 +4689,11 @@ export default function App() {
                             busy={busy}
                             onSave={(alerts) => action({ action: 'amount-alerts', alerts })}
                           />
-                          <PowerBiSettings
-                            status={data.powerbi}
-                            demo={demo}
-                            onChanged={() => load(true)}
-                          />
                           <ShipmentSettings
-                            key={'shipments-' + JSON.stringify(data.shipments || {})}
                             shipments={data.shipments || {}}
                             info={data.shipmentsInfo}
                             carriers={data.catalogs?.carriers || carriers}
                             busy={busy}
-                            onSave={(entries) => action({ action: 'shipments', entries })}
                             welcometrack={data.welcometrackSync}
                             welcometrackConnected={!!data.carrierApis?.welcometrack?.configured}
                             onWelcometrack={(body) => action(body as ActionPayload)}

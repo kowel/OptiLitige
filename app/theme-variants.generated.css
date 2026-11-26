@@ -1745,12 +1745,6 @@
     border: 1px solid #745f3c;
     color: #e9ce9b
 }
-:root[data-theme='dark'] .powerbi-token code {
-    background: #141928
-}
-:root[data-theme='dark'] .powerbi-howto pre {
-    background: #141928
-}
 :root[data-theme='dark'] .appearance-menu {
     background: #131725;
     border: 1px solid #1d253f
@@ -4058,12 +4052,6 @@
     background: #4e3c20;
     border: 1px solid #745f3c;
     color: #e9ce9b
-}
-:root[data-theme='dark'][data-dark='graphite'] .powerbi-token code {
-    background: #242429
-}
-:root[data-theme='dark'][data-dark='graphite'] .powerbi-howto pre {
-    background: #242429
 }
 :root[data-theme='dark'][data-dark='graphite'] .appearance-menu {
     background: #212125;
@@ -6981,14 +6969,6 @@
     background: #fff6e8;
     border: 1px solid #f3dcb5;
     color: #7a5a1e
-}
-:root[data-theme='light'][data-light='ardoise'] .powerbi-token code {
-    background: #f5f6f8;
-    border: 1px solid var(--line)
-}
-:root[data-theme='light'][data-light='ardoise'] .powerbi-howto pre {
-    background: #f5f6f8;
-    border: 1px solid var(--line)
 }
 :root[data-theme='light'][data-light='ardoise'] .appearance-menu {
     background: #ffffff;

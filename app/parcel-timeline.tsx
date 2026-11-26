@@ -299,8 +299,9 @@ export default function ParcelTimeline({
           {r?.status === 'not-configured' && (
             <p className="parcel-note">
               Le suivi détaillé {providerLabel ? 'par ' + providerLabel : ''} s’affichera ici dès
-              que la connexion sera activée (clé d’accès à ajouter par l’informatique, voir
-              A-FINALISER-AVEC-IT.md). En attendant : « Page du transporteur ».
+              que la clé Welcometrack sera enregistrée
+              {admin ? ' (Paramètres → Transporteurs → API de suivi des colis)' : ' par un admin'}.
+              En attendant : « Page du transporteur ».
             </p>
           )}
           {r?.status === 'unsupported' && (

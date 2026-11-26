@@ -14,8 +14,9 @@ export const dynamic = 'force-dynamic';
 
 // Suivi détaillé des colis d'un dossier, pour la fiche :
 //   GET /api/tracking?id=<dossier>[&refresh=1]
-// Pour chaque numéro du champ BT : étapes et événements lus sur l'API du transporteur
-// (app/tracking-providers.mjs), gardés en cache dans settings (« track:<numéro> »).
+// Pour chaque numéro du champ BT : étapes et événements lus sur Welcometrack, tous
+// transporteurs (app/tracking-providers.mjs), gardés en cache dans settings
+// (« wt-track:<numéro> »).
 export async function GET(req: Request) {
   try {
     const { db } = await context();
@@ -43,7 +44,8 @@ export async function GET(req: Request) {
     // Welcometrack : identifiants des transporteurs (liste gardée une semaine)
     let wtList: { id: number; name: string }[] | null = null;
     const wtContext = async (carrier: string) => {
-      wtList ??= await wtCarriers(db, secrets.WELCOMETRACK_API_KEY);
+      if (secrets.WELCOMETRACK_API_KEY)
+        wtList ??= await wtCarriers(db, secrets.WELCOMETRACK_API_KEY);
       return { carrier, order: String(record.order || '').trim(), wtCarriers: wtList };
     };
     const items = await Promise.all(
@@ -52,7 +54,8 @@ export async function GET(req: Request) {
         .map(async (t: { number: string; carrier: string; url: string }) => {
           const provider = trackingProvider(t.carrier, secrets);
           if (!provider) return { ...t, provider: '', result: { status: 'unsupported' } };
-          const cacheId = 'track:' + t.number;
+          // « wt-track » : suivis Welcometrack (les anciens « track: » La Poste / FedEx sont ignorés)
+          const cacheId = 'wt-track:' + t.number;
           const cached = await db
             .prepare('SELECT payload FROM settings WHERE id=?')
             .bind(cacheId)
