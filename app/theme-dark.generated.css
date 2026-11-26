@@ -583,6 +583,9 @@
 :root[data-theme='dark'] .toast {
     box-shadow: 0 8px 35px #664a8222
 }
+:root[data-theme='dark'] .modal-overlay.boot-screen {
+    background: #23283e
+}
 :root[data-theme='dark'] .modal {
     background: #202539
 }
@@ -2005,9 +2008,14 @@
     background: #202539;
     border: 1px solid #3d3362
 }
-:root[data-theme='dark'] .credit-mail {
-    background: #1f2f4d;
-    color: #9fb8e5
+:root[data-theme='dark'] .credit-queue .notification-tabs button {
+    color: #c2b9cc;
+    background: #202539
+}
+:root[data-theme='dark'] .credit-queue .notification-tabs button.active {
+    border-color: #9e8bda;
+    color: #b1a6de;
+    background: #2c1f4d
 }
 :root[data-theme='dark'] .dossier-recap-desc {
     background: #22283d

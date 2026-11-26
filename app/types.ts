@@ -274,8 +274,6 @@ export interface CreditSettingsData {
   imputations: string[];
   /** Montant au-delà duquel un responsable valide (null ou vide = jamais) */
   managerAbove: Record<string, number | string | null>;
-  /** Destinataire du mail « Nouvelle demande d'avoir » (Pierre Mazeaud par défaut) */
-  notify?: { name: string; email: string };
 }
 
 /** Règle de délai (SLA) réglée dans Paramètres → Délais (app/sla.mjs) */
