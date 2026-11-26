@@ -808,6 +808,32 @@ export default function App() {
     setDetail(d.record);
     return d.record;
   }
+  // Bouton « retour » du navigateur ou de la souris : chaque écran (menu) et chaque dossier
+  // ouvert est une étape de l'historique ; revenir en arrière rouvre l'écran ou le dossier
+  // précédent au lieu de quitter l'outil (et de repasser par la connexion).
+  const restoring = useRef<{ page: string; selected: string | null } | null>(null);
+  const popRef = useRef<(s: { page: string; selected: string | null }) => void>(() => {});
+  useEffect(() => {
+    // Les repères internes de Next.js restent dans l'étape : sans eux, il recharge la page
+    const state = { ...(window.history.state || {}), optilitige: 1, page, selected };
+    const target = restoring.current;
+    if (target) {
+      // Retour en cours : on attend d'avoir rejoint l'étape visée, sans rien ajouter
+      if (target.page === page && target.selected === selected) restoring.current = null;
+      return;
+    }
+    const current = window.history.state;
+    if (current?.optilitige && current.page === page && current.selected === selected) return;
+    if (current?.optilitige) window.history.pushState(state, '');
+    else window.history.replaceState(state, '');
+  }, [page, selected]);
+  useEffect(() => {
+    const onPop = (e: PopStateEvent) => {
+      if (e.state?.optilitige) popRef.current({ page: e.state.page, selected: e.state.selected });
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
   // Actualisation automatique de la liste (espace réel) : toutes les minutes quand l'onglet
   // est visible, et au retour sur l'onglet. Le dossier ouvert n'est pas remplacé : un
   // bandeau propose de le recharger s'il a été modifié entre-temps.
@@ -1582,6 +1608,26 @@ export default function App() {
     setAdv({ ...EMPTY_ADVANCED });
     setError('');
   }
+  // Retour arrière (voir plus haut) : rouvre l'écran et, s'il y en avait un, le dossier.
+  // Fonction remise à jour après chaque affichage (elle lit la liste et l'écran du moment).
+  const goBackTo = (s: { page: string; selected: string | null }) => {
+    if (s.page === page && s.selected === selected) return;
+    const record = s.selected ? records.find((x) => x.id === s.selected) : undefined;
+    const goal = { page: s.page, selected: record ? record.id : null };
+    restoring.current = goal;
+    setPage(goal.page);
+    setError('');
+    if (!record) {
+      setSelected(null);
+      return;
+    }
+    open(record).finally(() =>
+      // Dossier non rouvert (erreur) : on ne bloque pas les étapes suivantes
+      setTimeout(() => {
+        if (restoring.current === goal) restoring.current = null;
+      }, 0),
+    );
+  };
   const cards = kpiCards(records, dashView, me.email);
   // Listes de l'espace Contentieux (Paramètres → Contentieux)
   const ctSettings = data.contentieuxSettings || DEFAULT_CONTENTIEUX_SETTINGS;
@@ -1850,6 +1896,10 @@ export default function App() {
     // Onglet ouvert : celui choisi, sinon le premier qui a du non lu
     currentAlertTab =
       alertTab || ALERT_CATEGORIES.find((c) => alertCounts[c.id] > 0)?.id || 'mentions';
+  // Bouton « retour » : la fonction de retour lit l'écran et la liste du moment
+  useEffect(() => {
+    popRef.current = goBackTo;
+  });
 
   async function importRecords(items: ImportItem[], fileName: string) {
     setBusy(true);
