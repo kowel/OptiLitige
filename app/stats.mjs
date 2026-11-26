@@ -17,6 +17,7 @@ import {
   shipmentsFor,
 } from './carrier-tracking.mjs';
 import { csvCell } from './csv.mjs';
+import { carrierCostOf, carrierFault } from './carrier-cost.mjs';
 import { stakeOf } from './advanced-filters.mjs';
 import { carrierDays, clientDays, commonDays } from './delays.mjs';
 
@@ -46,7 +47,9 @@ function emptyGroup(key) {
     replyDays: [],
     due: 0, // réponses dont on peut juger le délai (reçues, ou attendues et déjà en retard)
     lateReplies: 0,
-    recovered: 0, // indemnisations des dossiers ayant un avoir imputé au transporteur
+    recovered: 0, // indemnisations des dossiers remboursés au client, faute du transporteur
+    refundedCarrier: 0, // avoirs émis aux clients sur les dossiers fautes du transporteur
+    netLoss: 0, // reste à notre charge (app/carrier-cost.mjs)
     compensation: 0,
     disputeValue: 0,
     credits: 0, // avoirs émis (tous)
@@ -80,8 +83,8 @@ function finish(g, grandTotal) {
     avgClientDays: round(avg(g.clientDays)),
     avgCarrierDays: round(avg(g.carrierDays)),
     noReply: g.sent - g.replied,
-    // Reste à notre charge : avoirs imputés au transporteur non couverts par l'indemnisation
-    netLoss: round(g.carrierCredits - g.recovered, 2),
+    // Reste à notre charge : avoirs aux clients non couverts par l'indemnisation du transporteur
+    netLoss: round(g.netLoss, 2),
     open: g.open,
     resolved: g.resolved,
     founded: g.founded,
@@ -98,8 +101,9 @@ function finish(g, grandTotal) {
     disputeValue: round(g.disputeValue, 2),
     credits: round(g.credits, 2),
     carrierCredits: round(g.carrierCredits, 2),
-    // Même périmètre des deux côtés : les dossiers du circuit des demandes d'avoir
-    recoveryRate: g.carrierCredits ? round((g.recovered / g.carrierCredits) * 100, 0) : null,
+    refundedCarrier: round(g.refundedCarrier, 2),
+    // Même périmètre des deux côtés : dossiers fautes du transporteur remboursés au client
+    recoveryRate: g.refundedCarrier ? round((g.recovered / g.refundedCarrier) * 100, 0) : null,
     accepted: g.accepted,
     partial: g.partial,
     refused: g.refused,
@@ -157,9 +161,15 @@ function add(g, r, limitHours, now) {
   for (const c of r.credits || [])
     if (c.status === 'issued' && c.imputation === 'Transporteur')
       carrierCredit += num(c.approvedAmount ?? c.amount);
-  if (carrierCredit > 0) {
-    g.carrierCredits += carrierCredit;
-    g.recovered += num(r.compensation);
+  if (carrierCredit > 0) g.carrierCredits += carrierCredit;
+  // Coût transporteur : ce qu'on rembourse au client moins ce que le transporteur indemnise
+  if (carrierFault(r)) {
+    const cost = carrierCostOf(r);
+    if (cost.refunded > 0) {
+      g.refundedCarrier += cost.refunded;
+      g.recovered += cost.compensated;
+      g.netLoss += cost.netLoss;
+    }
   }
 }
 
@@ -238,6 +248,7 @@ export const STAT_COLUMNS = [
   ['avgStake', 'Montant moyen par dossier (€)'],
   ['credits', 'Avoirs émis (€)'],
   ['carrierCredits', 'Avoirs imputés au transporteur (€)'],
+  ['refundedCarrier', 'Remboursé aux clients, faute transporteur (€)'],
   ['compensation', 'Indemnisations obtenues (€)'],
   ['recoveryRate', 'Taux de récupération (%)'],
   ['netLoss', 'Reste à notre charge (€)'],

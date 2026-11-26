@@ -2023,4 +2023,24 @@
 :root[data-theme='dark'] .transport-signature-preview {
     background: #21263b
 }
+:root[data-theme='dark'] .carrier-cost-kpis > div {
+    border: 1px solid #38385f;
+    background: #22273c
+}
+:root[data-theme='dark'] .carrier-cost-kpis span {
+    color: #babac4
+}
+:root[data-theme='dark'] .carrier-cost-kpis small {
+    color: #b2b2bf
+}
+:root[data-theme='dark'] .carrier-cost-kpis .loss {
+    border-color: #70393c;
+    background: #4c1f1f
+}
+:root[data-theme='dark'] .carrier-cost-kpis .loss b {
+    color: #e59ea1
+}
+:root[data-theme='dark'] .carrier-cost-bar i {
+    background: #552324
+}
 }

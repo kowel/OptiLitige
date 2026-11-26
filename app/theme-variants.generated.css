@@ -2025,6 +2025,26 @@
 :root[data-theme='dark'] .transport-signature-preview {
     background: #131826
 }
+:root[data-theme='dark'] .carrier-cost-kpis > div {
+    border: 1px solid #21273d;
+    background: #141826
+}
+:root[data-theme='dark'] .carrier-cost-kpis span {
+    color: #b9bcc5
+}
+:root[data-theme='dark'] .carrier-cost-kpis small {
+    color: #b1b5c0
+}
+:root[data-theme='dark'] .carrier-cost-kpis .loss {
+    border-color: #70393c;
+    background: #4c1f1f
+}
+:root[data-theme='dark'] .carrier-cost-kpis .loss b {
+    color: #e59ea1
+}
+:root[data-theme='dark'] .carrier-cost-bar i {
+    background: #552324
+}
 :root[data-theme='dark'] {
     --purple: #a3a0ff;
     --ink: #c7d3ea;
@@ -4308,6 +4328,26 @@
 }
 :root[data-theme='dark'][data-dark='graphite'] .transport-signature-preview {
     background: #222226
+}
+:root[data-theme='dark'][data-dark='graphite'] .carrier-cost-kpis > div {
+    border: 1px solid #38383e;
+    background: #222327
+}
+:root[data-theme='dark'][data-dark='graphite'] .carrier-cost-kpis span {
+    color: #bebec0
+}
+:root[data-theme='dark'][data-dark='graphite'] .carrier-cost-kpis small {
+    color: #b7b7ba
+}
+:root[data-theme='dark'][data-dark='graphite'] .carrier-cost-kpis .loss {
+    border-color: #70393c;
+    background: #4c1f1f
+}
+:root[data-theme='dark'][data-dark='graphite'] .carrier-cost-kpis .loss b {
+    color: #e59ea1
+}
+:root[data-theme='dark'][data-dark='graphite'] .carrier-cost-bar i {
+    background: #552324
 }
 :root[data-theme='dark'][data-dark='graphite'] {
     --purple: #a594ff;
@@ -7258,5 +7298,25 @@
 }
 :root[data-theme='light'][data-light='ardoise'] .signature-item {
     border: 1px solid var(--line)
+}
+:root[data-theme='light'][data-light='ardoise'] .carrier-cost-kpis > div {
+    border: 1px solid #ececee;
+    background: #fafbfc
+}
+:root[data-theme='light'][data-light='ardoise'] .carrier-cost-kpis span {
+    color: #818388
+}
+:root[data-theme='light'][data-light='ardoise'] .carrier-cost-kpis small {
+    color: #8f9196
+}
+:root[data-theme='light'][data-light='ardoise'] .carrier-cost-kpis .loss {
+    border-color: #f1c4c6;
+    background: #fdf3f3
+}
+:root[data-theme='light'][data-light='ardoise'] .carrier-cost-kpis .loss b {
+    color: #c2383d
+}
+:root[data-theme='light'][data-light='ardoise'] .carrier-cost-bar i {
+    background: #f6d7d8
 }
 }

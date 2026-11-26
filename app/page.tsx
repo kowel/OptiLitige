@@ -101,6 +101,7 @@ import AlertList from './alert-list';
 import PrintSheet from './print-sheet';
 import ThemeToggle from './theme-toggle';
 import StatsTable from './stats-table';
+import CarrierCostPanel from './carrier-cost-panel';
 import PeriodPicker from './period-picker';
 import { inPeriod, periodLabel } from './period.mjs';
 import { participants } from './participants.mjs';
@@ -4260,6 +4261,15 @@ export default function App() {
                       />
                     }
                     onStatus={(status: string) => openAnalyticsList(status)}
+                  />
+                )}
+                {page === 'analytics' && seesAnalytics(view) && (
+                  <CarrierCostPanel
+                    records={analyticsRecords}
+                    members={data.members}
+                    period={period}
+                    slaNow={slaNow}
+                    onOpen={(x) => open(x)}
                   />
                 )}
                 {page === 'analytics' && seesAnalytics(view) && (

@@ -7983,3 +7983,58 @@ td.row-end {
   gap: 4px;
   font-size: 12px;
 }
+
+/* Coût des transporteurs (app/carrier-cost-panel.tsx) */
+.carrier-cost-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  padding: 4px 20px 16px;
+}
+.carrier-cost-kpis > div {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid #e9e9f1;
+  border-radius: 9px;
+  background: #faf9fd;
+}
+.carrier-cost-kpis span {
+  font-size: 12px;
+  color: #8a8a9c;
+}
+.carrier-cost-kpis b {
+  font-size: 22px;
+}
+.carrier-cost-kpis small {
+  font-size: 11px;
+  color: #9a9aab;
+}
+.carrier-cost-kpis .loss {
+  border-color: #f1c4c6;
+  background: #fdf3f3;
+}
+.carrier-cost-kpis .loss b {
+  color: #c2383d;
+}
+.carrier-cost-bar {
+  position: relative;
+  display: inline-block;
+  min-width: 110px;
+  padding: 2px 6px;
+  isolation: isolate;
+}
+.carrier-cost-bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 4px;
+  background: #f6d7d8;
+  z-index: -1;
+}
+.carrier-cost-top {
+  padding: 6px 20px 0;
+}
+.carrier-cost-top h3 {
+  margin: 10px 0 8px;
+  font-size: 14px;
+}
