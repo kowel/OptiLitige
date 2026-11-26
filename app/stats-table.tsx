@@ -32,9 +32,16 @@ const euros = (v: StatValue) =>
 function show(key: string, v: StatValue) {
   if (v === null || v === undefined) return '—';
   if (
-    ['compensation', 'credits', 'carrierCredits', 'gap', 'stake', 'avgStake', 'netLoss'].includes(
-      key,
-    )
+    [
+      'compensation',
+      'credits',
+      'carrierCredits',
+      'refundedCarrier',
+      'gap',
+      'stake',
+      'avgStake',
+      'netLoss',
+    ].includes(key)
   )
     return euros(v);
   if (key.endsWith('Rate') || key === 'share') return String(v).replace('.', ',') + ' %';
@@ -163,9 +170,9 @@ export default function StatsTable({
           délai n’est pas compté.
         </li>
         <li>
-          <b>Taux de récupération</b> : indemnisations obtenues ÷ avoirs émis imputés au
-          transporteur, sur les seuls dossiers ayant une demande d’avoir avec l’imputation «
-          Transporteur ».
+          <b>Taux de récupération</b> : indemnisations du transporteur ÷ avoirs remboursés aux
+          clients, sur les mêmes dossiers : litiges d’origine Transport dont la faute revient au
+          transporteur (ni imputés Interne ou Autre, ni « Ne concerne pas le transporteur »).
         </li>
         <li>
           <b>Acceptés / refusés par le transporteur</b> : décision du transporteur (« Accepté », «
@@ -181,8 +188,8 @@ export default function StatsTable({
         </li>
         <li>
           <b>Montant en jeu</b> : montant concerné des dossiers. <b>Reste à notre charge</b> :
-          avoirs imputés au transporteur moins les indemnisations obtenues sur ces dossiers.{' '}
-          <b>Type de litige principal</b> : le plus fréquent, avec sa part.
+          avoirs remboursés aux clients moins les indemnisations du transporteur, sur ces mêmes
+          dossiers. <b>Type de litige principal</b> : le plus fréquent, avec sa part.
         </li>
         <li>
           <b>Délais</b> : transporteur, de la transmission à la clôture de son dossier ; client, de
