@@ -315,7 +315,23 @@ export default function ParcelTimeline({
             </p>
           )}
           {(r?.status === 'not-found' || r?.status === 'error') && (
-            <p className="parcel-note warn">{r.message || 'Suivi indisponible.'}</p>
+            <div className="parcel-note warn parcel-fallback">
+              <span>
+                <b>Pas de suivi Welcometrack, aller sur le site du transporteur.</b>
+                {r.status === 'error' && r.message ? ' (' + r.message + ')' : ''}
+                {!item.url &&
+                  (admin
+                    ? ' Adresse de suivi de ' +
+                      (item.carrier || 'ce transporteur') +
+                      ' à ajouter dans Paramètres → Transporteurs → Liens de suivi des colis.'
+                    : ' Copiez le numéro et recherchez-le sur le site du transporteur.')}
+              </span>
+              {item.url && (
+                <a className="primary small-btn" href={item.url} target="_blank" rel="noreferrer">
+                  <ExternalLink size={14} /> Suivre sur le site {item.carrier || 'du transporteur'}
+                </a>
+              )}
+            </div>
           )}
         </div>
       )}
