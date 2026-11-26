@@ -138,20 +138,11 @@ les clés** dans Paramètres → Connexions transporteurs (gardées dans la base
 prioritaires sur d'éventuels secrets du serveur). Ces connexions servent au suivi des colis ; les
 échanges avec le service client des transporteurs passent par l'e-mail Microsoft 365.
 
-À faire pour l'activer :
-
-1. **La Poste « Suivi v2 »** (Colissimo **et** Chronopost, ≈ 2/3 des dossiers) : créer un compte
-   gratuit sur developer.laposte.fr avec une adresse Cybertek, souscrire à l'API **Suivi**, copier
-   la clé (« X-Okapi-Key ») et la saisir dans Paramètres → Connexions transporteurs (ou, côté
-   serveur, variable `LAPOSTE_OKAPI_KEY` dans Vercel).
-2. **FedEx Track API** (FedEx) : compte sur developer.fedex.com, projet « Track API », puis
-   saisir les identifiants dans Paramètres → Connexions transporteurs (ou variables
-   `FEDEX_CLIENT_ID` et `FEDEX_CLIENT_SECRET` dans Vercel).
-3. **TNT France, GEODIS, FRANCE EXPRESS, KUEHNE NAGEL** : pas d'API branchée. Demander à chacun
-   s'il propose une API de suivi pour ses clients professionnels (TNT dépend de FedEx : vérifier si
-   la Track API FedEx accepte les numéros TNT France). En attendant, la fiche propose leur page de
-   suivi ; adresses de GEODIS, FRANCE EXPRESS et KUEHNE NAGEL à saisir dans **Paramètres → Liens de
-   suivi des colis**.
+**Depuis le 26/11/2026, tout le suivi passe par Welcometrack** (API v6, lecture seule : requêtes
+GET uniquement), pour tous les transporteurs. Les connexions directes La Poste et FedEx ont été
+retirées. La clé Welcometrack se saisit dans **Paramètres → Transporteurs → API de suivi des
+colis** (ou, côté serveur, variable `WELCOMETRACK_API_KEY` dans Vercel, qui évite de la garder dans
+la base). À demander à Welcometrack : une clé **limitée à la lecture** si c'est possible.
 
 Note : la lecture automatique des pages web des transporteurs a été écartée (protections
 anti-robots, conditions d'utilisation, pages qui changent sans prévenir).
@@ -166,8 +157,11 @@ recevoir le nombre d'expéditions par mois et par transporteur depuis l'outil qu
   (`Authorization: Bearer <jeton>`) ;
 - contenu : `{ "source": "ERP", "entries": [ { "month": "2026-11", "carrier": "COLISSIMO", "count": 1234 } ] }`
   (un envoi par jour ou par mois ; un mois renvoyé remplace ses valeurs) ;
-- en attendant, les responsables saisissent ou corrigent les nombres dans **Paramètres →
-  Expéditions par transporteur**.
+- **depuis le 26/11/2026**, les nombres viennent de **Welcometrack** : une alerte interne
+  (colonnes transporteur et date d'expédition) dont le n° se saisit dans **Paramètres →
+  Expéditions par transporteur** ; lecture chaque nuit (`/api/cron/welcometrack`, variable
+  `CRON_SECRET` dans Vercel). La saisie à la main a été retirée ; la porte `/api/shipments`
+  ci-dessus reste disponible.
 
 À décider avec l'IT :
 
@@ -179,15 +173,10 @@ recevoir le nombre d'expéditions par mois et par transporteur depuis l'outil qu
 - le **jeton** (variable `SHIPMENTS_TOKEN` dans Vercel), seule protection de ce chemin dans
   cette version : il doit être long et aléatoire.
 
-### Power BI : lecture des données des litiges (16/11/2026)
+### Power BI : retiré le 26/11/2026
 
-Power BI peut lire les données d'OptiLitige : une ligne par litige (volet transport compris) et une
-ligne par mois et par transporteur pour les expéditions (`/api/powerbi`, lecture seule, sans nom
-ni compte client). **Les responsables créent eux-mêmes le jeton** dans Paramètres → Power BI.
-
-Dans cette version, le jeton Power BI suffit (il n'y a plus de jeton de service Cloudflare Access).
-OptiLitige n'apporte que la partie litiges : pour tout le flux transport, Power BI devra aussi lire
-l'outil d'expédition ou l'ERP.
+La connexion Power BI (`/api/powerbi` et Paramètres → Power BI) a été retirée : les expéditions
+viennent désormais de Welcometrack. Plus de jeton Power BI à gérer.
 
 ## 4. Sauvegardes
 

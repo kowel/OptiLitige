@@ -4,15 +4,12 @@ import { Check, PlugZap, Trash2 } from 'lucide-react';
 import { API_FIELDS, PROVIDERS } from './tracking-providers.mjs';
 import type { CarrierApiStatus } from './types';
 
-// Paramètres → Connexions transporteurs : les responsables branchent eux-mêmes les API de suivi
-// des colis (La Poste pour Colissimo et Chronopost, FedEx). Les clés sont envoyées au serveur et
-// n'en repartent jamais : l'écran n'affiche que « connecté » et leurs 4 derniers caractères.
+// Paramètres → Transporteurs → API de suivi des colis : les admins branchent la clé Welcometrack
+// (suivi de tous les transporteurs). La clé est envoyée au serveur et n'en repart jamais :
+// l'écran n'affiche que « connecté » et ses 4 derniers caractères.
 const HELP: Record<string, string> = {
-  laposte:
-    'Clé gratuite sur developer.laposte.fr (API « Suivi v2 »). Elle sert pour Colissimo et Chronopost.',
-  fedex: 'Compte développeur FedEx (developer.fedex.com), projet avec l’API « Track ».',
   welcometrack:
-    'Clé API Welcometrack (v6). Lecture seule : suivi de tous les colis déclarés par Cybertek, quel que soit le transporteur (TNT, GEODIS, France Express, Kuehne+Nagel…), et nombre d’expéditions (Paramètres → Expéditions). Utilisée quand le transporteur n’a pas sa propre connexion ci-dessus.',
+    'Clé API Welcometrack (v6), utilisée en lecture seule : suivi de tous les colis déclarés par Cybertek, quel que soit le transporteur (Colissimo, Chronopost, TNT, FedEx, GEODIS, France Express, Kuehne+Nagel…), et nombre d’expéditions (Paramètres → Expéditions).',
 };
 
 async function post(body: Record<string, unknown>) {
@@ -156,12 +153,12 @@ export default function CarrierApiSettings({
       <div className="integration-icon">
         <PlugZap size={24} />
       </div>
-      <h2>Connexions transporteurs : suivi des colis</h2>
+      <h2>Suivi des colis : connexion Welcometrack</h2>
       <p>
-        Branchez les API des transporteurs pour afficher le suivi détaillé des colis dans chaque
-        dossier (étapes, événements, date de livraison). Sans connexion, la fiche propose le lien
-        vers la page de suivi. Les clés restent sur le serveur : elles ne sont plus jamais affichées
-        après l’enregistrement.
+        Le suivi détaillé des colis de chaque dossier (étapes, événements, date de livraison,
+        incidents) vient de Welcometrack, pour tous les transporteurs. Sans connexion, la fiche
+        propose le lien vers la page de suivi. La clé reste sur le serveur : elle n’est plus jamais
+        affichée après l’enregistrement.
       </p>
       <p className="carrier-api-scope">
         <strong>Uniquement pour le suivi des colis.</strong> Ces connexions ne relient pas le compte

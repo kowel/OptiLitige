@@ -1743,12 +1743,6 @@
     border: 1px solid #745f3c;
     color: #e9ce9b
 }
-:root[data-theme='dark'] .powerbi-token code {
-    background: #23293f
-}
-:root[data-theme='dark'] .powerbi-howto pre {
-    background: #23293f
-}
 :root[data-theme='dark'] .appearance-menu {
     background: #202539;
     border: 1px solid #334162
