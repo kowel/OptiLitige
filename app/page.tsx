@@ -1618,6 +1618,9 @@ export default function App() {
     setPage(goal.page);
     setError('');
     if (!record) {
+      // Sortie d'un dossier : comme « Retour aux dossiers », la liste redescend jusqu'à sa
+      // ligne, qui clignote en bleu
+      if (selected) setReturnTo(selected);
       setSelected(null);
       return;
     }
