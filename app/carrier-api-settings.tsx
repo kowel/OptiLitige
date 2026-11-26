@@ -8,6 +8,10 @@ import type { CarrierApiStatus } from './types';
 // (suivi de tous les transporteurs). La clé est envoyée au serveur et n'en repart jamais :
 // l'écran n'affiche que « connecté » et ses 4 derniers caractères.
 const HELP: Record<string, string> = {
+  laposte:
+    'En secours, quand Welcometrack ne trouve pas un colis Colissimo ou Chronopost. Clé gratuite sur developer.laposte.fr (API « Suivi v2 »).',
+  fedex:
+    'En secours, quand Welcometrack ne trouve pas un colis FedEx ou TNT. Compte développeur FedEx (developer.fedex.com), projet avec l’API « Track ».',
   welcometrack:
     'Clé API Welcometrack (v6), utilisée en lecture seule : suivi de tous les colis déclarés par Cybertek, quel que soit le transporteur (Colissimo, Chronopost, TNT, FedEx, GEODIS, France Express, Kuehne+Nagel…), et nombre d’expéditions (Paramètres → Expéditions).',
 };
@@ -153,12 +157,13 @@ export default function CarrierApiSettings({
       <div className="integration-icon">
         <PlugZap size={24} />
       </div>
-      <h2>Suivi des colis : connexion Welcometrack</h2>
+      <h2>Suivi des colis : Welcometrack et secours</h2>
       <p>
         Le suivi détaillé des colis de chaque dossier (étapes, événements, date de livraison,
-        incidents) vient de Welcometrack, pour tous les transporteurs. Sans connexion, la fiche
-        propose le lien vers la page de suivi. La clé reste sur le serveur : elle n’est plus jamais
-        affichée après l’enregistrement.
+        incidents) vient de Welcometrack, pour tous les transporteurs. Si Welcometrack ne trouve pas
+        un colis, La Poste (Colissimo, Chronopost) et FedEx (FedEx, TNT) prennent le relais quand
+        leur clé est réglée ; sinon la fiche renvoie vers le site du transporteur. Les clés restent
+        sur le serveur : elles ne sont plus jamais affichées après l’enregistrement.
       </p>
       <p className="carrier-api-scope">
         <strong>Uniquement pour le suivi des colis.</strong> Ces connexions ne relient pas le compte
