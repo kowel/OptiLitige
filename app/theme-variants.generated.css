@@ -1183,6 +1183,12 @@
     border-top: 1px solid #1e2641;
     color: #c5cce1
 }
+:root[data-theme='dark'] .delete-record-btn {
+    color: #e3a1a6
+}
+:root[data-theme='dark'] .delete-record-btn:hover:not(:disabled) {
+    border-color: #da8b91
+}
 :root[data-theme='dark'] .credit-card {
     border-left: 3px solid #4c5880
 }
@@ -3490,6 +3496,12 @@
     background: #27282d;
     border-top: 1px solid #383840;
     color: #d0d1d6
+}
+:root[data-theme='dark'][data-dark='graphite'] .delete-record-btn {
+    color: #e3a1a6
+}
+:root[data-theme='dark'][data-dark='graphite'] .delete-record-btn:hover:not(:disabled) {
+    border-color: #da8b91
 }
 :root[data-theme='dark'][data-dark='graphite'] .credit-card {
     border-left: 3px solid #61626b
@@ -6051,6 +6063,12 @@
     background: #f3f5f9;
     border-top: 1px solid #e6e9f0;
     color: #575d6a
+}
+:root[data-theme='light'][data-light='ardoise'] .delete-record-btn {
+    color: #c2414b
+}
+:root[data-theme='light'][data-light='ardoise'] .delete-record-btn:hover:not(:disabled) {
+    border-color: #c2414b
 }
 :root[data-theme='light'][data-light='ardoise'] .credit-card {
     border: 1px solid var(--line);

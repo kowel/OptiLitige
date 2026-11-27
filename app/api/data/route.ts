@@ -1579,6 +1579,33 @@ export async function POST(req: Request) {
       return out({ ok: true });
     }
 
+    // Suppression d'un dossier (admins seulement). Une copie est gardée dans les réglages
+    // (« dossier-supprime:<id> ») et ses pièces jointes vont dans la corbeille du stockage :
+    // un dossier supprimé par erreur reste récupérable.
+    if (b.action === 'record-delete') {
+      if (!admin) return out({ error: 'Accès admin requis' }, 403);
+      const id = String(b.id || '');
+      const row = id
+        ? await db.prepare('SELECT payload FROM records WHERE id=?').bind(id).first<SettingRow>()
+        : null;
+      if (!row) return out({ error: 'Dossier introuvable' }, 404);
+      const record: Dossier = JSON.parse(row.payload);
+      await db
+        .prepare(
+          'INSERT INTO settings(id,payload) VALUES (?,?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload',
+        )
+        .bind(
+          'dossier-supprime:' + id,
+          JSON.stringify({ record, deletedBy: member.email, deletedAt: now }),
+        )
+        .run();
+      await db.prepare('DELETE FROM records WHERE id=?').bind(id).run();
+      if (env.BUCKET)
+        for (const a of record.attachments || [])
+          await moveToTrash(env.BUCKET, 'attachments/' + id + '/' + a.id, member.email, now);
+      return out({ ok: true });
+    }
+
     // Demandes d'avoir (app/credit-requests.mjs). Le dossier est relu à sa dernière version :
     // faire avancer un avoir n'échoue pas si un collègue a modifié un autre champ.
     if (String(b.action || '').startsWith('credit-')) {

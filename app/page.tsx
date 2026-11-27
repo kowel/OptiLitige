@@ -190,6 +190,7 @@ import {
   Wrench,
   Timer,
   Printer,
+  Trash2,
   Mail,
   Scale,
 } from 'lucide-react';
@@ -1334,7 +1335,11 @@ export default function App() {
         if (p.action === 'create') createdId.current = d.id || '';
         // Détail d'abord, liste ensuite : la liste n'est ainsi jamais plus récente que le
         // dossier ouvert, et le bandeau « modifié par un collègue » ne clignote pas.
-        if (p.id && detail?.id === p.id) {
+        if (p.action === 'record-delete') {
+          // Dossier supprimé : retour à la liste, sans tenter de le relire
+          setSelected(null);
+          await load();
+        } else if (p.id && detail?.id === p.id) {
           const fresh = await fetchDetail(p.id);
           if (p.action === 'comment') shareComments(p.id, fresh.comments || []);
           // Le formulaire de traitement reste ouvert : il prend la nouvelle révision du dossier,
@@ -1421,6 +1426,7 @@ export default function App() {
               ? ' dossiers importés lui sont rattachés'
               : ' dossier importé lui est rattaché'),
         );
+      if (p.action === 'record-delete') setNotice('Dossier supprimé');
       if (p.action === 'welcometrack-sync') setNotice('Expéditions importées de Welcometrack');
       if (p.action === 'welcometrack-alert') setNotice('N° de l’alerte Welcometrack enregistré');
       return true;
@@ -2675,6 +2681,28 @@ export default function App() {
                     >
                       <Printer size={15} /> Fiche PDF
                     </button>
+                    {admin && (
+                      <button
+                        type="button"
+                        className="secondary danger delete-record-btn"
+                        disabled={busy}
+                        title="Supprimer ce dossier (réservé aux admins)"
+                        onClick={() => {
+                          if (
+                            window.confirm(
+                              'Supprimer le dossier ' +
+                                r.ref +
+                                ' « ' +
+                                r.title +
+                                ' » ?\n\nIl disparaîtra de la liste pour tout le monde. Une copie et ses pièces jointes sont gardées de côté : en cas d’erreur, il peut être récupéré.',
+                            )
+                          )
+                            action({ action: 'record-delete', id: r.id } as ActionPayload);
+                        }}
+                      >
+                        <Trash2 size={15} /> Supprimer
+                      </button>
+                    )}
                     <Badge status={r.status} />
                   </div>
                 </div>
