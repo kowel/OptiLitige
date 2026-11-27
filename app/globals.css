@@ -8102,6 +8102,44 @@ td.row-end {
 .carrier-cost-kpis .loss b {
   color: #c2383d;
 }
+/* Analyses litiges (admins) : relances au Service Litige */
+.relances-block {
+  padding: 0 20px 16px;
+}
+.relances-block h3 {
+  font-size: 14px;
+  margin: 6px 0 8px;
+}
+.relances-bar {
+  min-width: 70px;
+}
+.carrier-cost-bar.relances-bar i {
+  background: #ece6fb;
+}
+.relances-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  max-height: 480px;
+  overflow: auto;
+}
+.relances-list li {
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid #ececf3;
+  border-radius: 7px;
+  font-size: 13px;
+}
+.relances-list q {
+  quotes: none;
+}
+.relances-note {
+  padding: 0 20px 18px;
+  font-size: 12px;
+}
 .carrier-cost-bar {
   position: relative;
   display: inline-block;
