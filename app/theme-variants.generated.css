@@ -2070,6 +2070,12 @@
 :root[data-theme='dark'] .carrier-cost-kpis .loss b {
     color: #e59ea1
 }
+:root[data-theme='dark'] .carrier-cost-bar.relances-bar i {
+    background: #131b33
+}
+:root[data-theme='dark'] .relances-list li {
+    border: 1px solid #20273b
+}
 :root[data-theme='dark'] .carrier-cost-bar i {
     background: #552324
 }
@@ -4408,6 +4414,12 @@
 }
 :root[data-theme='dark'][data-dark='graphite'] .carrier-cost-kpis .loss b {
     color: #e59ea1
+}
+:root[data-theme='dark'][data-dark='graphite'] .carrier-cost-bar.relances-bar i {
+    background: #292a2f
+}
+:root[data-theme='dark'][data-dark='graphite'] .relances-list li {
+    border: 1px solid #36373d
 }
 :root[data-theme='dark'][data-dark='graphite'] .carrier-cost-bar i {
     background: #552324
@@ -7413,6 +7425,12 @@
 }
 :root[data-theme='light'][data-light='ardoise'] .carrier-cost-kpis .loss b {
     color: #c2383d
+}
+:root[data-theme='light'][data-light='ardoise'] .carrier-cost-bar.relances-bar i {
+    background: #edeff4
+}
+:root[data-theme='light'][data-light='ardoise'] .relances-list li {
+    border: 1px solid #eeeff1
 }
 :root[data-theme='light'][data-light='ardoise'] .carrier-cost-bar i {
     background: #f6d7d8
