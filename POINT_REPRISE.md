@@ -214,6 +214,7 @@ Le projet est né sur ChatGPT Sites. Le code garde la compatibilité avec ce mod
 | 26/11/2026           | **Retour souris depuis un dossier** (kowel) : comme « Retour aux dossiers », la liste redescend jusqu'à la ligne du dossier quitté, qui clignote en bleu (`setReturnTo` dans `goBackTo`). |
 | 26/11/2026           | **Icône d'onglet « oL »** (`app/icon.svg`, repris dans `public/favicon.svg`) : la pastille violette du menu, à la place du globe générique du navigateur. |
 | 26/11/2026           | **Icône d'onglet selon le thème** (`app/theme-favicon.tsx`) : l'icône « oL » reprend le dégradé des boutons principaux du thème affiché (Violet, Ardoise, Minuit, Graphite, ou Auto), relu à chaque changement de thème (après le fondu). |
+| 27/11/2026           | **Supprimer un dossier** (kowel, admins seulement) : bouton rouge « Supprimer » dans la fiche, après confirmation. Action `record-delete` : copie gardée dans le réglage `dossier-supprime:<id>` (qui, quand), pièces jointes rangées dans la corbeille du stockage ; dossier récupérable en cas d'erreur. |
 ## 6. Fichiers concernés (repères)
 
 **Écran**

@@ -1181,6 +1181,12 @@
     border-top: 1px solid #3e3465;
     color: #ccc7df
 }
+:root[data-theme='dark'] .delete-record-btn {
+    color: #e3a1a6
+}
+:root[data-theme='dark'] .delete-record-btn:hover:not(:disabled) {
+    border-color: #da8b91
+}
 :root[data-theme='dark'] .credit-card {
     border-left: 3px solid #664f7d
 }

@@ -787,6 +787,42 @@ test('API locale : vues partagées par service', async () => {
   assert.ok(!(await get()).savedViews.some((v) => v.id === saved.id));
 });
 
+test('API locale : suppression d’un dossier par un admin', async () => {
+  const login = await fetch(origin + '/signin-with-chatgpt?return_to=/', { redirect: 'manual' });
+  const cookie = login.headers.get('set-cookie')?.split(';')[0];
+  const post = (p) =>
+    fetch(origin + '/api/data', {
+      method: 'POST',
+      headers: { Cookie: cookie, Origin: origin, 'Content-Type': 'application/json' },
+      body: JSON.stringify(p),
+    });
+  const get = () =>
+    fetch(origin + '/api/data', { headers: { Cookie: cookie } }).then((r) => r.json());
+  const created = await post({
+    action: 'create',
+    record: {
+      title: 'Dossier à supprimer',
+      customer: 'Fictif',
+      customerAccount: 'C-TEST',
+      order: 'LOCAL-SUPPR',
+      amount: 10,
+      origin: 'Transport',
+      type: 'Inversion',
+      brand: 'GROSBILL',
+      productType: 'PC',
+      description: 'Test technique local uniquement.',
+    },
+  });
+  assert.equal(created.status, 200);
+  const { id } = await created.json();
+  assert.ok((await get()).records.some((r) => r.id === id));
+  assert.equal((await post({ action: 'record-delete', id })).status, 200);
+  assert.ok(!(await get()).records.some((r) => r.id === id));
+  // Déjà supprimé, ou identifiant absent : introuvable
+  assert.equal((await post({ action: 'record-delete', id })).status, 404);
+  assert.equal((await post({ action: 'record-delete' })).status, 404);
+});
+
 test('API locale : expéditions (outil d’expédition et saisie responsable)', async () => {
   const token = 'jeton-local-de-test-expeditions-0001'; // .dev.vars (local uniquement)
   const send = (body, auth = 'Bearer ' + token) =>

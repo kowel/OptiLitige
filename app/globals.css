@@ -4034,6 +4034,21 @@ button.kpi:focus-visible {
   align-items: center;
   gap: 6px;
 }
+/* Fiche dossier : « Supprimer » (admins), en rouge */
+.delete-record-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #c2414b;
+}
+.delete-record-btn:hover:not(:disabled) {
+  border-color: #c2414b;
+}
+@media print {
+  .delete-record-btn {
+    display: none;
+  }
+}
 .print-sheet {
   display: none;
 }
