@@ -4064,9 +4064,18 @@ button.kpi:focus-visible {
   width: 46px;
   height: 46px;
   border-radius: 50%;
+  background: #efedff;
+  color: var(--purple);
+  margin-bottom: 12px;
+}
+.manual-copy {
+  width: 100%;
+  font-size: 12px;
+  text-align: left;
+}
+.confirm-modal.danger .confirm-icon {
   background: #fbebeb;
   color: #c2414b;
-  margin-bottom: 12px;
 }
 .confirm-text p {
   margin: 0 0 10px;

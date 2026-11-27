@@ -1190,6 +1190,9 @@
     border-color: #da8b91
 }
 :root[data-theme='dark'] .confirm-icon {
+    background: #121931
+}
+:root[data-theme='dark'] .confirm-modal.danger .confirm-icon {
     background: #4e2020;
     color: #e3a1a6
 }
@@ -3515,6 +3518,9 @@
     border-color: #da8b91
 }
 :root[data-theme='dark'][data-dark='graphite'] .confirm-icon {
+    background: #27282d
+}
+:root[data-theme='dark'][data-dark='graphite'] .confirm-modal.danger .confirm-icon {
     background: #4e2020;
     color: #e3a1a6
 }
@@ -6093,6 +6099,10 @@
     border-color: #c2414b
 }
 :root[data-theme='light'][data-light='ardoise'] .confirm-icon {
+    background: #f3f5f9;
+    color: var(--purple)
+}
+:root[data-theme='light'][data-light='ardoise'] .confirm-modal.danger .confirm-icon {
     background: #fbebeb;
     color: #c2414b
 }

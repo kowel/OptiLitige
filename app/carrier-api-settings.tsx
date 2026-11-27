@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useConfirm } from './confirm-dialog';
 import { Check, PlugZap, Trash2 } from 'lucide-react';
 import { API_FIELDS, PROVIDERS } from './tracking-providers.mjs';
 import type { CarrierApiStatus } from './types';
@@ -49,6 +50,7 @@ function ProviderCard({
   const [values, setValues] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
+  const { ask, dialog } = useConfirm();
   const filled = fields.every((f) => (values[f.name] || '').trim());
   const run = async (body: Record<string, unknown>, done?: string) => {
     setBusy(true);
@@ -69,6 +71,7 @@ function ProviderCard({
   };
   return (
     <div className="carrier-api">
+      {dialog}
       <h3>
         {PROVIDERS[provider as keyof typeof PROVIDERS]?.label || provider}{' '}
         <span className={'carrier-api-state ' + (status?.configured ? 'on' : 'off')}>
@@ -124,8 +127,19 @@ function ProviderCard({
               type="button"
               className="text-btn danger"
               disabled={demo || busy}
-              onClick={() => {
-                if (window.confirm('Retirer la clé ' + (status.label || provider) + ' ?'))
+              onClick={async () => {
+                if (
+                  await ask({
+                    title: 'Retirer la clé ' + (status.label || provider) + ' ?',
+                    text: (
+                      <p>
+                        Le suivi des colis par ce service s’arrêtera jusqu’à ce qu’une nouvelle clé
+                        soit saisie.
+                      </p>
+                    ),
+                    confirmLabel: 'Retirer la clé',
+                  })
+                )
                   run({ action: 'carrier-api-remove' }, 'Clé retirée.');
               }}
             >

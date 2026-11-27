@@ -25,6 +25,8 @@ const day = (v?: string | null) =>
 // commerciaux restent en bas de l'onglet (app/transport-conversation.tsx).
 export default function CarrierPlatform({ record: r, canEdit, forms }: CarrierPlatformProps) {
   const [copied, setCopied] = useState('');
+  // Copie refusée par le navigateur : le texte s'affiche, sélectionné, dans une fenêtre de l'outil
+  const [manual, setManual] = useState('');
   if (r.origin !== 'Transport') return null;
   const carrier = r.carrier || 'Transporteur non renseigné';
   const form = claimFormFor(forms, r.carrier);
@@ -35,7 +37,7 @@ export default function CarrierPlatform({ record: r, canEdit, forms }: CarrierPl
       setCopied(what);
       setTimeout(() => setCopied(''), 2500);
     } catch {
-      window.prompt('Copiez le texte :', text);
+      setManual(text);
     }
   };
   // Champs du formulaire de réclamation, remplis avec le dossier
@@ -51,6 +53,35 @@ export default function CarrierPlatform({ record: r, canEdit, forms }: CarrierPl
   ];
   return (
     <section className="carrier-platform" aria-label={'Formulaire de réclamation ' + carrier}>
+      {manual && (
+        <div className="modal-overlay" onClick={() => setManual('')}>
+          <section
+            className="modal confirm-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Copiez le texte"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2>Copiez le texte</h2>
+            <div className="confirm-text">
+              <p>La copie automatique est bloquée : le texte est sélectionné, faites Ctrl + C.</p>
+              <textarea
+                className="manual-copy"
+                readOnly
+                rows={8}
+                value={manual}
+                ref={(t) => t?.select()}
+                onKeyDown={(e) => e.key === 'Escape' && setManual('')}
+              />
+            </div>
+            <div className="confirm-actions">
+              <button type="button" className="primary" onClick={() => setManual('')}>
+                Fermer
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
       <div className="carrier-platform-head">
         <span className="carrier-platform-icon">
           <Truck size={18} />
