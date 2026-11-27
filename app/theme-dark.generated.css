@@ -1187,6 +1187,17 @@
 :root[data-theme='dark'] .delete-record-btn:hover:not(:disabled) {
     border-color: #da8b91
 }
+:root[data-theme='dark'] .confirm-icon {
+    background: #4e2020;
+    color: #e3a1a6
+}
+:root[data-theme='dark'] button.primary.danger-btn {
+    background: #87373d;
+    border-color: #da8b91
+}
+:root[data-theme='dark'] button.primary.danger-btn:hover:not(:disabled) {
+    background: #913b42
+}
 :root[data-theme='dark'] .credit-card {
     border-left: 3px solid #664f7d
 }
