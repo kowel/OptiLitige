@@ -11,6 +11,7 @@ import {
   Webcam,
 } from 'lucide-react';
 import WebcamCapture from './webcam-capture';
+import { useConfirm } from './confirm-dialog';
 import { namePhotos, sendAttachment } from './attachment-upload';
 import {
   ACCEPT_ATTRIBUTE,
@@ -46,6 +47,7 @@ export default function Attachments({
     [webcam, setWebcam] = useState(false),
     input = useRef<HTMLInputElement>(null),
     camera = useRef<HTMLInputElement>(null);
+  const { ask, dialog } = useConfirm();
   const list: Attachment[] = record.attachments || [];
   const busy = !!progress;
   const url = (a: Attachment) =>
@@ -83,7 +85,14 @@ export default function Attachments({
   }
 
   async function remove(a: Attachment) {
-    if (!window.confirm('Supprimer définitivement « ' + a.name + ' » ?')) return;
+    if (
+      !(await ask({
+        title: 'Supprimer cette pièce jointe ?',
+        text: <p>« {a.name} »</p>,
+        confirmLabel: 'Supprimer',
+      }))
+    )
+      return;
     setProgress('Suppression…');
     try {
       const res = await fetch('/api/attachments', {
@@ -101,6 +110,7 @@ export default function Attachments({
 
   return (
     <div className="attachments">
+      {dialog}
       {webcam && (
         <WebcamCapture
           reference={record.ref}

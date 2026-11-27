@@ -1,6 +1,7 @@
 'use client';
 import { stakeOf } from './advanced-filters.mjs';
 import { useState } from 'react';
+import { useConfirm } from './confirm-dialog';
 import { Check, Plus, Receipt, Send, X } from 'lucide-react';
 import {
   CREDIT_FAMILIES,
@@ -65,6 +66,7 @@ export function CreditProcess({
   onAction: CreditAction;
 }) {
   const [w, setWork] = useState<CreditWork>({});
+  const { ask, dialog } = useConfirm();
   const setW = (patch: CreditWork) => setWork({ ...w, ...patch });
   const can = creditPermissions(c, member);
   if (!can.issue && !can.refuse && !can.cancel) return null;
@@ -75,6 +77,7 @@ export function CreditProcess({
   const number = String(w.number || '').trim();
   return (
     <div className="credit-actions">
+      {dialog}
       {can.issue && (
         <>
           <label>
@@ -130,10 +133,16 @@ export function CreditProcess({
             type="button"
             className="text-btn credit-cancel"
             disabled={busy}
-            onClick={() =>
-              window.confirm('Annuler cette demande d’avoir ?') &&
-              onAction({ action: 'credit-cancel', creditId: c.id })
-            }
+            onClick={async () => {
+              if (
+                await ask({
+                  title: 'Annuler cette demande d’avoir ?',
+                  confirmLabel: 'Annuler la demande',
+                  cancelLabel: 'Garder la demande',
+                })
+              )
+                onAction({ action: 'credit-cancel', creditId: c.id });
+            }}
           >
             Annuler la demande
           </button>

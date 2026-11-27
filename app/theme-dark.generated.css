@@ -1188,6 +1188,9 @@
     border-color: #da8b91
 }
 :root[data-theme='dark'] .confirm-icon {
+    background: #241f4d
+}
+:root[data-theme='dark'] .confirm-modal.danger .confirm-icon {
     background: #4e2020;
     color: #e3a1a6
 }

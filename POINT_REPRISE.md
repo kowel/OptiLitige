@@ -216,6 +216,7 @@ Le projet est né sur ChatGPT Sites. Le code garde la compatibilité avec ce mod
 | 26/11/2026           | **Icône d'onglet selon le thème** (`app/theme-favicon.tsx`) : l'icône « oL » reprend le dégradé des boutons principaux du thème affiché (Violet, Ardoise, Minuit, Graphite, ou Auto), relu à chaque changement de thème (après le fondu). |
 | 27/11/2026           | **Supprimer un dossier** (kowel, admins seulement) : bouton rouge « Supprimer » dans la fiche, après confirmation. Action `record-delete` : copie gardée dans le réglage `dossier-supprime:<id>` (qui, quand), pièces jointes rangées dans la corbeille du stockage ; dossier récupérable en cas d'erreur. |
 | 27/11/2026           | **Confirmation dans l'outil** (`app/confirm-dialog.tsx`) : la suppression d'un dossier se confirme dans une fenêtre de l'outil, aux couleurs du thème, et non plus dans la fenêtre de Chrome (« Annuler » par défaut, Échap ou clic à côté pour annuler). |
+| 27/11/2026           | **Plus aucune fenêtre de Chrome** : `useConfirm()` (`app/confirm-dialog.tsx`) remplace tous les `window.confirm` (pièce jointe, clé API, demande d'avoir, modèles de réclamation, vue partagée) ; la copie bloquée du résumé transporteur s'affiche dans une fenêtre de l'outil au lieu de `window.prompt`. |
 ## 6. Fichiers concernés (repères)
 
 **Écran**

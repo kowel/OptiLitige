@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useConfirm } from './confirm-dialog';
 import { Bookmark, Check, SlidersHorizontal, Trash2, X } from 'lucide-react';
 import { EMPTY_ADVANCED, MAX_VIEWS, SOURCE_LABELS, countAdvanced } from './advanced-filters.mjs';
 import type { AdvancedFilters, ListFilters, SavedView } from './types';
@@ -33,6 +34,7 @@ export default function ListTools({
   team,
   busy,
 }: ListToolsProps) {
+  const { ask, dialog } = useConfirm();
   const [open, setOpen] = useState(countAdvanced(adv) > 0),
     [naming, setNaming] = useState(false),
     [name, setName] = useState('');
@@ -59,6 +61,7 @@ export default function ListTools({
 
   return (
     <div className="list-tools">
+      {dialog}
       <div className="list-tools-bar">
         <button
           type="button"
@@ -187,11 +190,20 @@ export default function ListTools({
                   aria-label={'Supprimer la vue ' + v.name}
                   title="Supprimer"
                   disabled={busy}
-                  onClick={() =>
-                    window.confirm(
-                      'Supprimer la vue « ' + v.name + ' » pour tout le service ' + team + ' ?',
-                    ) && onDeleteView(v.id)
-                  }
+                  onClick={async () => {
+                    if (
+                      await ask({
+                        title: 'Supprimer cette vue ?',
+                        text: (
+                          <p>
+                            La vue « {v.name} » disparaîtra pour tout le service {team}.
+                          </p>
+                        ),
+                        confirmLabel: 'Supprimer la vue',
+                      })
+                    )
+                      onDeleteView(v.id);
+                  }}
                 >
                   <Trash2 size={14} />
                 </button>
