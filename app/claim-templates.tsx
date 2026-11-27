@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useConfirm } from './confirm-dialog';
 import { Check, Plus, RotateCcw, Settings2, Trash2 } from 'lucide-react';
 import { DEFAULT_CLAIM_TEMPLATES, PLACEHOLDERS } from './claim-templates.mjs';
 
@@ -35,10 +36,12 @@ export function TemplateEditor({
 }) {
   const [draft, setDraft] = useState<ClaimTemplate[]>(() => templates.map((t) => ({ ...t })));
   const [open, setOpen] = useState(0);
+  const { ask, dialog } = useConfirm();
   const set = (i: number, patch: Partial<ClaimTemplate>) =>
     setDraft(draft.map((t, j) => (j === i ? { ...t, ...patch } : t)));
   return (
     <section className="claim-templates claim-editor" aria-label="Gérer les modèles de réclamation">
+      {dialog}
       <div className="claim-head">
         <span className="carrier-platform-icon">
           <Settings2 size={18} />
@@ -108,8 +111,20 @@ export function TemplateEditor({
         <button
           type="button"
           className="text-btn"
-          onClick={() => {
-            if (window.confirm('Remplacer tous les modèles par ceux proposés au départ ?'))
+          onClick={async () => {
+            if (
+              await ask({
+                title: 'Revenir aux modèles d’origine ?',
+                text: (
+                  <p>
+                    Tous les modèles seront remplacés par ceux proposés au départ (rien n’est
+                    enregistré tant que vous ne validez pas).
+                  </p>
+                ),
+                confirmLabel: 'Remplacer les modèles',
+                danger: false,
+              })
+            )
               setDraft((DEFAULT_CLAIM_TEMPLATES as ClaimTemplate[]).map((t) => ({ ...t })));
           }}
         >
