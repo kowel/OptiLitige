@@ -2591,6 +2591,27 @@ export default function App() {
                     </button>
                   </div>
                 )}
+                {/* Dossier de la vue « À vérifier ou compléter » : repère en haut de la fiche */}
+                {toCheck(r) && (
+                  <div role="note" className="to-check-note">
+                    <Sparkles size={15} />
+                    <span>
+                      <b>Dossier à vérifier</b>
+                      {r.prefilled?.fields?.length
+                        ? ' · ' +
+                          r.prefilled.fields.length +
+                          ' champ(s) pré-rempli(s) d’après les échanges, à contrôler dans le traitement'
+                        : ''}
+                      {incompleteClosure(r)
+                        ? ' · clôture incomplète : ' +
+                          [!r.outcome && 'résultat', !r.imputation && 'imputation']
+                            .filter(Boolean)
+                            .join(' et ') +
+                          ' à renseigner'
+                        : ''}
+                    </span>
+                  </div>
+                )}
                 <div className="detail-heading">
                   <div>
                     <span className="eyebrow">

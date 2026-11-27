@@ -580,6 +580,17 @@
     color: #f0d293;
     border: 1px solid #76663d
 }
+:root[data-theme='dark'] .to-check-note {
+    background: #4f4220;
+    color: #f0d293;
+    border: 1px solid #76663d
+}
+:root[data-theme='dark'] .to-check-note svg {
+    color: #f0c793
+}
+:root[data-theme='dark'] .to-check-note b {
+    color: #f3c990
+}
 :root[data-theme='dark'] .toast {
     box-shadow: 0 8px 35px #664a8222
 }
