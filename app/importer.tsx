@@ -236,7 +236,11 @@ export default function Importer({ onImport, busy }: ImporterProps) {
                 >
                   <option value="">Non renseigné dans l’export</option>
                   {headers.map((h) => (
-                    <option key={h}>{h}</option>
+                    // value explicite : le navigateur rognerait l'espace final (« Demandeur ») et la
+                    // colonne paraîtrait non renseignée
+                    <option key={h} value={h}>
+                      {h}
+                    </option>
                   ))}
                 </select>
               </div>
