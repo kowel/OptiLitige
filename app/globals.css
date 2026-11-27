@@ -1931,6 +1931,31 @@ label.checkbox input {
   margin: 12px 0 20px;
   font-size: 13px;
 }
+/* Fiche : repère « Dossier à vérifier » (pré-remplissage ou clôture incomplète) */
+.to-check-note {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: #fff8e6;
+  color: #8a6416;
+  padding: 9px 14px;
+  border: 1px solid #f1dfb0;
+  border-radius: 7px;
+  margin: 12px 0 16px;
+  font-size: 13px;
+}
+.to-check-note svg {
+  flex: none;
+  color: #a8691b;
+}
+.to-check-note b {
+  color: #7a4d10;
+}
+@media print {
+  .to-check-note {
+    display: none;
+  }
+}
 .stale-banner button {
   margin-left: auto;
   font-weight: 600;

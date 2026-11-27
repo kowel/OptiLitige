@@ -218,6 +218,7 @@ Le projet est né sur ChatGPT Sites. Le code garde la compatibilité avec ce mod
 | 27/11/2026           | **Confirmation dans l'outil** (`app/confirm-dialog.tsx`) : la suppression d'un dossier se confirme dans une fenêtre de l'outil, aux couleurs du thème, et non plus dans la fenêtre de Chrome (« Annuler » par défaut, Échap ou clic à côté pour annuler). |
 | 27/11/2026           | **Plus aucune fenêtre de Chrome** : `useConfirm()` (`app/confirm-dialog.tsx`) remplace tous les `window.confirm` (pièce jointe, clé API, demande d'avoir, modèles de réclamation, vue partagée) ; la copie bloquée du résumé transporteur s'affiche dans une fenêtre de l'outil au lieu de `window.prompt`. |
 | 27/11/2026           | **Import : colonnes à espace final** (`app/importer.tsx`) : les `<option>` des correspondances ont une `value` explicite. Sans elle, le navigateur rognait « Demandeur␠ », « BT␠ », « Transporteur␠ »… : la colonne, pourtant bien reconnue, s'affichait « Non renseigné » et la choisir à la main la vidait. Import SharePoint du 27/11 : 74 nouveaux dossiers (IMP-1046 à IMP-1120). |
+| 27/11/2026           | **Encart « Dossier à vérifier »** (`app/page.tsx`, classe `.to-check-note`) : en haut de la fiche des dossiers de la vue « À vérifier ou compléter », un encart jaune dit pourquoi (champs pré-remplis à contrôler, clôture incomplète : résultat ou imputation à renseigner). Il disparaît avec le repère ; masqué à l'impression. |
 ## 6. Fichiers concernés (repères)
 
 **Écran**
