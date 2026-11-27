@@ -217,6 +217,7 @@ Le projet est né sur ChatGPT Sites. Le code garde la compatibilité avec ce mod
 | 27/11/2026           | **Supprimer un dossier** (kowel, admins seulement) : bouton rouge « Supprimer » dans la fiche, après confirmation. Action `record-delete` : copie gardée dans le réglage `dossier-supprime:<id>` (qui, quand), pièces jointes rangées dans la corbeille du stockage ; dossier récupérable en cas d'erreur. |
 | 27/11/2026           | **Confirmation dans l'outil** (`app/confirm-dialog.tsx`) : la suppression d'un dossier se confirme dans une fenêtre de l'outil, aux couleurs du thème, et non plus dans la fenêtre de Chrome (« Annuler » par défaut, Échap ou clic à côté pour annuler). |
 | 27/11/2026           | **Plus aucune fenêtre de Chrome** : `useConfirm()` (`app/confirm-dialog.tsx`) remplace tous les `window.confirm` (pièce jointe, clé API, demande d'avoir, modèles de réclamation, vue partagée) ; la copie bloquée du résumé transporteur s'affiche dans une fenêtre de l'outil au lieu de `window.prompt`. |
+| 27/11/2026           | **Import : colonnes à espace final** (`app/importer.tsx`) : les `<option>` des correspondances ont une `value` explicite. Sans elle, le navigateur rognait « Demandeur␠ », « BT␠ », « Transporteur␠ »… : la colonne, pourtant bien reconnue, s'affichait « Non renseigné » et la choisir à la main la vidait. Import SharePoint du 27/11 : 74 nouveaux dossiers (IMP-1046 à IMP-1120). |
 ## 6. Fichiers concernés (repères)
 
 **Écran**
