@@ -37,6 +37,7 @@ import BrandName, { brandKey } from './brand-name';
 import ListEditor from './list-editor';
 import { ChartPrefsContext } from './chart-formats';
 import IdleLogout from './idle-logout';
+import ConfirmDialog from './confirm-dialog';
 import {
   DEFAULT_BRAND_COLORS,
   DEFAULT_STAGES,
@@ -642,6 +643,8 @@ export default function App() {
     [notice, setNotice] = useState(''),
     [error, setError] = useState(''),
     [busy, setBusy] = useState(false),
+    // Fenêtre « Supprimer ce dossier ? » ouverte (admins)
+    [askDelete, setAskDelete] = useState(false),
     [notifications, setNotifications] = useState(false),
     [alertTab, setAlertTab] = useState(''),
     [adv, setAdv] = useState<AdvancedFilters>({ ...EMPTY_ADVANCED }),
@@ -2687,21 +2690,31 @@ export default function App() {
                         className="secondary danger delete-record-btn"
                         disabled={busy}
                         title="Supprimer ce dossier (réservé aux admins)"
-                        onClick={() => {
-                          if (
-                            window.confirm(
-                              'Supprimer le dossier ' +
-                                r.ref +
-                                ' « ' +
-                                r.title +
-                                ' » ?\n\nIl disparaîtra de la liste pour tout le monde. Une copie et ses pièces jointes sont gardées de côté : en cas d’erreur, il peut être récupéré.',
-                            )
-                          )
-                            action({ action: 'record-delete', id: r.id } as ActionPayload);
-                        }}
+                        onClick={() => setAskDelete(true)}
                       >
                         <Trash2 size={15} /> Supprimer
                       </button>
+                    )}
+                    {admin && askDelete && (
+                      <ConfirmDialog
+                        title="Supprimer ce dossier ?"
+                        confirmLabel="Supprimer le dossier"
+                        busy={busy}
+                        onCancel={() => setAskDelete(false)}
+                        onConfirm={() =>
+                          action({ action: 'record-delete', id: r.id } as ActionPayload).then(() =>
+                            setAskDelete(false),
+                          )
+                        }
+                      >
+                        <p>
+                          <b>{r.ref}</b> · {r.title}
+                        </p>
+                        <p>
+                          Il disparaîtra de la liste pour tout le monde. Une copie et ses pièces
+                          jointes sont gardées de côté : en cas d’erreur, il peut être récupéré.
+                        </p>
+                      </ConfirmDialog>
                     )}
                     <Badge status={r.status} />
                   </div>

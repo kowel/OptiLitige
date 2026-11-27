@@ -4049,6 +4049,44 @@ button.kpi:focus-visible {
     display: none;
   }
 }
+/* Fenêtre de confirmation de l'outil (app/confirm-dialog.tsx) */
+.confirm-modal {
+  max-width: 440px;
+  text-align: center;
+}
+.confirm-modal h2 {
+  margin: 0 0 10px;
+}
+.confirm-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #fbebeb;
+  color: #c2414b;
+  margin-bottom: 12px;
+}
+.confirm-text p {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.confirm-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+button.primary.danger-btn {
+  background: #c2414b;
+  border-color: #c2414b;
+  color: #fff;
+}
+button.primary.danger-btn:hover:not(:disabled) {
+  background: #a8333c;
+}
 .print-sheet {
   display: none;
 }
