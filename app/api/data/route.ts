@@ -62,6 +62,7 @@ import {
 import { parisToday } from '../../reminders.mjs';
 import { applyPrefill } from '../../prefill.mjs';
 import { verdictOf } from '../../treatment-rules.mjs';
+import { RELANCES_KEY, relanceRows } from '../../relances.mjs';
 import { isPriorityType } from '../../alerts.mjs';
 import {
   PROFILES_KEY,
@@ -143,6 +144,30 @@ export async function GET(req: Request) {
   try {
     const { db, member, reader, profileMap } = await context();
     const id = new URL(req.url).searchParams.get('id');
+    // Analyse des relances au Service Litige (app/relances.mjs) : réservée aux admins, calculée ici
+    // pour que les textes des commentaires ne partent jamais vers les autres comptes
+    if (new URL(req.url).searchParams.get('part') === 'relances') {
+      if (member.role !== 'Admin') return out({ error: 'Accès admin requis' }, 403);
+      const [recs, people, hist] = await Promise.all([
+        db
+          .prepare(
+            "SELECT id, payload::jsonb->>'ref' AS ref, (payload::jsonb->'comments')::text AS comments FROM records",
+          )
+          .all<{ id: string; ref: string; comments: string | null }>(),
+        db.prepare('SELECT email, name, role FROM members').all<Member>(),
+        db
+          .prepare('SELECT payload FROM settings WHERE id=?')
+          .bind(RELANCES_KEY)
+          .first<SettingRow>(),
+      ]);
+      const records = recs.results.map((r) => ({
+        id: r.id,
+        ref: r.ref,
+        comments: JSON.parse(r.comments || '[]'),
+      }));
+      const history = hist ? JSON.parse(hist.payload) : {};
+      return out({ rows: relanceRows(records, people.results, history) });
+    }
     if (id !== null) {
       if (!id || id.length > 200) return out({ error: 'Dossier invalide.' }, 400);
       // Échanges en direct (app/live-comments.ts) : seulement les commentaires, requête légère

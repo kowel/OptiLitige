@@ -103,6 +103,7 @@ import ThemeToggle from './theme-toggle';
 import ThemeFavicon from './theme-favicon';
 import StatsTable from './stats-table';
 import CarrierCostPanel from './carrier-cost-panel';
+import RelancesPanel from './relances-panel';
 import PeriodPicker from './period-picker';
 import { inPeriod, periodLabel } from './period.mjs';
 import { participants } from './participants.mjs';
@@ -4407,6 +4408,14 @@ export default function App() {
                   <CarrierCostPanel
                     records={analyticsRecords}
                     members={data.members}
+                    period={period}
+                    slaNow={slaNow}
+                    onOpen={(x) => open(x)}
+                  />
+                )}
+                {page === 'analytics' && admin && (
+                  <RelancesPanel
+                    records={data.records}
                     period={period}
                     slaNow={slaNow}
                     onOpen={(x) => open(x)}

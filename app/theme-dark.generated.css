@@ -2068,6 +2068,12 @@
 :root[data-theme='dark'] .carrier-cost-kpis .loss b {
     color: #e59ea1
 }
+:root[data-theme='dark'] .carrier-cost-bar.relances-bar i {
+    background: #2e2150
+}
+:root[data-theme='dark'] .relances-list li {
+    border: 1px solid #37375d
+}
 :root[data-theme='dark'] .carrier-cost-bar i {
     background: #552324
 }

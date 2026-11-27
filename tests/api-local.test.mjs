@@ -823,6 +823,17 @@ test('API locale : suppression d’un dossier par un admin', async () => {
   assert.equal((await post({ action: 'record-delete' })).status, 404);
 });
 
+test('API locale : analyse des relances au Service Litige (admin)', async () => {
+  const login = await fetch(origin + '/signin-with-chatgpt?return_to=/', { redirect: 'manual' });
+  const cookie = login.headers.get('set-cookie')?.split(';')[0];
+  const res = await fetch(origin + '/api/data?part=relances', { headers: { Cookie: cookie } });
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.ok(Array.isArray(body.rows));
+  // Sans session : refusé
+  assert.notEqual((await fetch(origin + '/api/data?part=relances')).status, 200);
+});
+
 test('API locale : expéditions (outil d’expédition et saisie responsable)', async () => {
   const token = 'jeton-local-de-test-expeditions-0001'; // .dev.vars (local uniquement)
   const send = (body, auth = 'Bearer ' + token) =>
