@@ -1020,6 +1020,42 @@ tbody tr:hover {
   outline: 3px solid #7160db55;
   outline-offset: 2px;
 }
+/* Fiche (admins) : dossier précédent / suivant de la liste, à droite de « Retour aux dossiers »,
+   et qui reste visible en faisant défiler */
+.list-nav {
+  position: sticky;
+  top: 12px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  margin: -62px 0 24px auto;
+  padding: 4px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 4px 12px #7160db1f;
+}
+.list-nav .secondary {
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 13px;
+}
+.list-nav .muted {
+  font-size: 12.5px;
+  min-width: 64px;
+  text-align: center;
+}
+@media (max-width: 700px) {
+  .list-nav {
+    margin: 0 0 16px;
+  }
+}
+@media print {
+  .list-nav {
+    display: none !important;
+  }
+}
 .detail-heading {
   display: flex;
   justify-content: space-between;
