@@ -388,6 +388,9 @@
     color: #c8c2f0;
     border-color: #988fe0
 }
+:root[data-theme='dark'] .comment-opening p {
+    color: #c5c8d1
+}
 :root[data-theme='dark'] .comment b {
     color: #b8bdcd
 }
@@ -2754,6 +2757,9 @@
 :root[data-theme='dark'][data-dark='graphite'] .detail-tabs .active {
     color: #dbd3f2;
     border-color: #9e8bda
+}
+:root[data-theme='dark'][data-dark='graphite'] .comment-opening p {
+    color: #cacacc
 }
 :root[data-theme='dark'][data-dark='graphite'] .comment b {
     color: #c0c1c5
@@ -5199,6 +5205,9 @@
 :root[data-theme='light'][data-light='ardoise'] .detail-tabs .active {
     color: #6e79c3;
     border-color: #6e79c3
+}
+:root[data-theme='light'][data-light='ardoise'] .comment-opening p {
+    color: #66686d
 }
 :root[data-theme='light'][data-light='ardoise'] .comment b {
     color: #767a84

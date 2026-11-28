@@ -386,6 +386,9 @@
     color: #dbd3f2;
     border-color: #9e8bda
 }
+:root[data-theme='dark'] .comment-opening p {
+    color: #c6c6d0
+}
 :root[data-theme='dark'] .comment b {
     color: #c2b9cc
 }
