@@ -1183,3 +1183,56 @@ test('API locale : repère « client qui s’impatiente »', async () => {
   assert.equal(r.clientImpatient, false);
   assert.equal((await post({ action: 'client-impatient', id: 'inconnu', on: true })).status, 404);
 });
+
+test('API locale : date de clôture choisie à la main', async () => {
+  const login = await fetch(origin + '/signin-with-chatgpt?return_to=/', { redirect: 'manual' });
+  const cookie = login.headers.get('set-cookie')?.split(';')[0];
+  const get = async () =>
+    (await fetch(origin + '/api/data', { headers: { Cookie: cookie } })).json();
+  const post = async (p) => {
+    const r = await fetch(origin + '/api/data', {
+      method: 'POST',
+      headers: { Cookie: cookie, Origin: origin, 'Content-Type': 'application/json' },
+      body: JSON.stringify(p),
+    });
+    return { status: r.status, body: await r.json() };
+  };
+  const created = await post({
+    action: 'create',
+    record: {
+      title: 'Test date de clôture',
+      customer: 'Fictif',
+      customerAccount: 'C-TEST',
+      order: 'LOCAL-CLOTURE',
+      amount: 10,
+      origin: 'Transport',
+      type: 'Inversion',
+      brand: 'GROSBILL',
+      productType: 'PC',
+      description: 'Test technique local uniquement.',
+    },
+  });
+  const id = created.body.id;
+  let r = (await get()).records.find((x) => x.id === id);
+  const close = (extra) =>
+    post({
+      ...r,
+      action: 'update',
+      status: 'Résolu',
+      outcome: 'Inversion',
+      imputation: 'Interne',
+      compensation: 0,
+      ...extra,
+    });
+  // Pas avant l'ouverture
+  assert.equal((await close({ status: 'Pris en charge' })).status, 200);
+  r = (await get()).records.find((x) => x.id === id);
+  const refused = await close({ closedDate: '2020-01-01' });
+  assert.equal(refused.status, 400);
+  assert.match(refused.body.error, /précéder/);
+  // Sans date : aujourd'hui
+  assert.equal((await close({ closedDate: '' })).status, 200);
+  r = (await get()).records.find((x) => x.id === id);
+  assert.equal(r.status, 'Résolu');
+  assert.ok(r.closed);
+});
