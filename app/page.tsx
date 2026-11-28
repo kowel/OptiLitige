@@ -106,7 +106,7 @@ import CarrierCostPanel from './carrier-cost-panel';
 import RelancesPanel from './relances-panel';
 import PeriodPicker from './period-picker';
 import { inPeriod, periodLabel } from './period.mjs';
-import { participants } from './participants.mjs';
+import { openingEntry, participants } from './participants.mjs';
 import ListTools from './list-tools';
 import {
   EMPTY_ADVANCED,
@@ -3039,6 +3039,27 @@ export default function App() {
                           </p>
                         </HelpTip>
                         <div className="comments">
+                          {/* En tête des échanges : ouverture du dossier (qui, quand) */}
+                          {(() => {
+                            const o = openingEntry(r, data.members);
+                            return o ? (
+                              <article className="comment comment-opening">
+                                <span className="avatar">{o.author[0]}</span>
+                                <div>
+                                  <b>{o.author}</b>
+                                  <time>
+                                    {o.withTime
+                                      ? 'Le ' + dateTime(o.date)
+                                      : 'Le ' +
+                                        new Date(o.date).toLocaleDateString('fr-FR', {
+                                          timeZone: 'UTC',
+                                        })}
+                                  </time>
+                                  <p>Ouverture du dossier</p>
+                                </div>
+                              </article>
+                            ) : null;
+                          })()}
                           {r.comments.length ? (
                             r.comments.map((c) => (
                               <article
