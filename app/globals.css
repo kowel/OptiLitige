@@ -4053,6 +4053,13 @@ button.kpi:focus-visible {
   display: flex;
   align-items: center;
   gap: 10px;
+  /* Boutons trop nombreux pour la largeur : ils passent à la ligne au lieu d'écraser le titre */
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.detail-heading > div:first-child {
+  flex: 1 1 280px;
+  min-width: 240px;
 }
 .print-btn {
   display: inline-flex;
@@ -5886,6 +5893,29 @@ tbody tr.row-flash.very-high-amount {
 }
 @media print {
   .watch-btn {
+    display: none !important;
+  }
+}
+/* Fiche : « Client qui s'impatiente » (RC / SAV), repère seul pour les autres services */
+.impatient-btn.on {
+  border-color: #e0703a;
+  color: #b4521f;
+  background: #fff1e8;
+}
+.impatient-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid #f3c7ad;
+  border-radius: 999px;
+  background: #fff1e8;
+  color: #b4521f;
+  font-size: 13px;
+  font-weight: 600;
+}
+@media print {
+  .impatient-btn {
     display: none !important;
   }
 }

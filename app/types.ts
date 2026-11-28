@@ -154,6 +154,9 @@ export interface Dossier {
   carrierClosedAt?: string | null;
   clientSolvedAt?: string | null;
   clientStage?: string;
+  /** « Client qui s'impatiente », posé ou retiré par la RC ou le SAV (app/impatience.mjs) */
+  clientImpatient?: boolean;
+  impatienceLog?: { on: boolean; date: string; by: string; name: string }[];
   // Suivi financier et résultat
   outcome?: string;
   imputation?: string; // Interne | Transporteur | Autre (choisi à la clôture)

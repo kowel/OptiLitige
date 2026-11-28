@@ -159,6 +159,7 @@ import type {
 } from './types';
 import {
   LayoutDashboard,
+  Flame,
   FolderOpen,
   ChartNoAxesCombined,
   Users,
@@ -214,6 +215,7 @@ import ContentieuxDashboard from './contentieux-dashboard';
 import type { ContentieuxFocus } from './contentieux-view';
 import { createsDisputes, isAdmin, seesAnalytics, treatsDisputes } from './roles.mjs';
 import { ownerOf } from './dashboard-data.mjs';
+import { IMPATIENT_LABEL, canFlagImpatience, setImpatience } from './impatience.mjs';
 import MyData from './my-data';
 import DossierRecap from './dossier-recap';
 
@@ -1210,6 +1212,13 @@ export default function App() {
               : removeReminder(list, String(p.reminderId || ''));
           if (result.error) throw new Error(result.error);
           n.remindersByUser = { ...(data.remindersByUser || {}), [me.email]: result.list! };
+        } else if (p.action === 'client-impatient') {
+          const i = n.records.findIndex((x) => x.id === p.id);
+          if (i < 0) throw new Error('Dossier introuvable');
+          const copy = { ...n.records[i] };
+          const error = setImpatience(copy, !!p.on, data.me, now);
+          if (error) throw new Error(error);
+          n.records = n.records.map((x, j) => (j === i ? copy : x));
         } else if (p.action === 'watch') {
           const { list, error } = toggleWatch(
             data.watchingByUser?.[me.email] || [],
@@ -1401,26 +1410,31 @@ export default function App() {
                           ? 'Rappel programmé : il arrivera dans la cloche (Rappels) le jour venu'
                           : p.action === 'reminder-delete'
                             ? 'Rappel supprimé'
-                            : p.action === 'watch'
+                            : p.action === 'client-impatient'
                               ? p.on
-                                ? 'Vous suivez ce dossier : ses nouveautés arriveront dans la cloche (Abonnements)'
-                                : 'Vous ne suivez plus ce dossier'
-                              : p.action === 'comment'
-                                ? 'Commentaire ajouté'
-                                : p.action === 'create'
-                                  ? 'Dossier créé et transmis'
-                                  : p.action === 'list-update'
-                                    ? 'Liste enregistrée'
-                                    : p.action === 'edit-info'
-                                      ? 'Informations du dossier modifiées'
-                                      : p.action === 'view-add'
-                                        ? 'Vue enregistrée pour votre service'
-                                        : p.action === 'view-delete'
-                                          ? 'Vue supprimée'
-                                          : String(p.action).startsWith('credit-') &&
-                                              p.action !== 'credit-settings'
-                                            ? 'Avoir mis à jour'
-                                            : 'Modifications enregistrées',
+                                ? IMPATIENT_LABEL +
+                                  ' : signalé au Service Litige (compté dans les analyses)'
+                                : IMPATIENT_LABEL + ' : repère retiré'
+                              : p.action === 'watch'
+                                ? p.on
+                                  ? 'Vous suivez ce dossier : ses nouveautés arriveront dans la cloche (Abonnements)'
+                                  : 'Vous ne suivez plus ce dossier'
+                                : p.action === 'comment'
+                                  ? 'Commentaire ajouté'
+                                  : p.action === 'create'
+                                    ? 'Dossier créé et transmis'
+                                    : p.action === 'list-update'
+                                      ? 'Liste enregistrée'
+                                      : p.action === 'edit-info'
+                                        ? 'Informations du dossier modifiées'
+                                        : p.action === 'view-add'
+                                          ? 'Vue enregistrée pour votre service'
+                                          : p.action === 'view-delete'
+                                            ? 'Vue supprimée'
+                                            : String(p.action).startsWith('credit-') &&
+                                                p.action !== 'credit-settings'
+                                              ? 'Avoir mis à jour'
+                                              : 'Modifications enregistrées',
       );
       // Ajout d'un compte : ses dossiers importés de SharePoint lui ont été rattachés
       if (claimed)
@@ -2692,6 +2706,38 @@ export default function App() {
                         <CircleHelp size={17} />
                         <span>Ouvrir l’aide</span>
                       </button>
+                    )}
+                    {canFlagImpatience(demo ? view : me.role) ? (
+                      <button
+                        type="button"
+                        className={'secondary impatient-btn' + (r.clientImpatient ? ' on' : '')}
+                        aria-pressed={!!r.clientImpatient}
+                        disabled={busy || (!r.clientImpatient && r.status === 'Résolu')}
+                        title={
+                          r.clientImpatient
+                            ? 'Retirer le repère « client qui s’impatiente »'
+                            : 'Signaler que le client s’impatiente (relances, appels, menaces)'
+                        }
+                        onClick={() =>
+                          action({
+                            action: 'client-impatient',
+                            id: r.id,
+                            on: !r.clientImpatient,
+                          } as ActionPayload)
+                        }
+                      >
+                        <Flame size={15} />
+                        {IMPATIENT_LABEL}
+                      </button>
+                    ) : (
+                      r.clientImpatient && (
+                        <span
+                          className="impatient-chip"
+                          title="Signalé par la Relation client ou le SAV"
+                        >
+                          <Flame size={14} /> {IMPATIENT_LABEL}
+                        </span>
+                      )
                     )}
                     <button
                       type="button"

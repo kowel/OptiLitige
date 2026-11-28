@@ -93,6 +93,8 @@ const key = (name) => norm(strip(name));
  * Renvoie une ligne par commentaire qui tague (ou nomme, pour l'historique) le Service Litige.
  */
 /** Service affiché pour un auteur sans compte (ancien agent RC / SAV repris de SharePoint) */
+import { impatientAt } from './impatience.mjs';
+
 export const SANS_COMPTE = 'RC / SAV (sans compte)';
 
 export function relanceRows(records, members, history = {}) {
@@ -127,6 +129,8 @@ export function relanceRows(records, members, history = {}) {
       const author = byEmail.get(String(c.email || '').toLowerCase()) || byName.get(key(c.author));
       if (author && !['RC', 'SAV'].includes(author.role)) return;
       const k = known ? { c: known.c, client: !!known.client } : relanceKind(text, targetNames);
+      // Repère « client qui s'impatiente » posé par la RC ou le SAV au moment de la relance
+      const flagged = impatientAt(r, c.date);
       const reply = cs.slice(i + 1).find((n) => isTarget(n));
       const hours = reply ? (new Date(reply.date) - new Date(c.date)) / 3600000 : null;
       rows.push({
@@ -139,7 +143,8 @@ export function relanceRows(records, members, history = {}) {
         target: target.length ? target.join(', ') : targetNames[0] || 'Service Litige',
         kind: k.c,
         relance: k.c === 'relance',
-        client: k.client,
+        client: k.client || flagged,
+        flagged,
         source: known ? 'historique' : 'regles',
         replyHours: hours !== null && hours >= 0 ? Math.round(hours * 10) / 10 : null,
         text: text.slice(0, 300),
