@@ -10,7 +10,10 @@ const MAX_LOG = 50;
 export const canFlagImpatience = (role) => createsDisputes(role) || isAdmin(role);
 
 /**
- * Pose (on = true) ou retire le repère, avec l'historique (modifie le dossier sur place).
+ * Pose (on = true) ou retire le repère (modifie le dossier sur place). Rien dans l'historique :
+ * une ligne d'historique notifierait les abonnés du dossier (app/watch.mjs), or le Service
+ * Litige doit seulement VOIR le repère, sans être prévenu. Qui l'a posé et quand : journal
+ * impatienceLog (affiché au survol du repère).
  * Renvoie un message d'erreur, ou null.
  * @param {any} r dossier
  * @param {boolean} on
@@ -27,11 +30,14 @@ export function setImpatience(r, on, member, now) {
     ...(Array.isArray(r.impatienceLog) ? r.impatienceLog : []),
     { on, date: now, by: String(member.email || '').toLowerCase(), name: member.name },
   ].slice(-MAX_LOG);
-  r.history = [
-    ...(r.history || []),
-    { date: now, text: IMPATIENT_LABEL + (on ? ' : signalé' : ' : retiré'), author: member.name },
-  ];
   return null;
+}
+
+/** Dernière pose du repère (ou null) : { on, date, by, name } */
+export function lastImpatience(r) {
+  const log = Array.isArray(r?.impatienceLog) ? r.impatienceLog : [];
+  const on = log.filter((e) => e.on);
+  return on.length ? on[on.length - 1] : null;
 }
 
 /**

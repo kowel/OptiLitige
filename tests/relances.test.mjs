@@ -124,7 +124,9 @@ test('relances : repère « client qui s’impatiente » posé par la RC', async
   );
   assert.equal(setImpatience(r, true, rc, '2026-11-05T09:00:00Z'), null);
   assert.equal(r.clientImpatient, true);
-  assert.match(r.history.at(-1).text, /signalé/);
+  // Aucune ligne d'historique : les abonnés (Service Litige) ne sont pas notifiés
+  assert.equal(r.history, undefined);
+  assert.equal(r.impatienceLog.at(-1).name, 'Agent RC');
   setImpatience(r, false, rc, '2026-11-07T09:00:00Z');
   assert.equal(r.clientImpatient, false);
   assert.equal(impatientAt(r, '2026-11-04T09:00:00Z'), false);
