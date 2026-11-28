@@ -43,6 +43,7 @@ test('relances : client qui s’impatiente', () => {
 const members = [
   { email: 'litige@ex.fr', name: 'Agent Litige', role: 'Service Litige' },
   { email: 'rc@ex.fr', name: 'Agent RC', role: 'RC' },
+  { email: 'resp@ex.fr', name: 'Chef Exemple', role: 'Responsable' },
 ];
 
 test('relances : lignes, cible, délai de réponse et historique classé', () => {
@@ -80,6 +81,15 @@ test('relances : lignes, cible, délai de réponse et historique classé', () =>
           date: '2026-11-03T10:00:00Z',
           text: '@Personne HISTO le colis est arrivé ?',
         },
+        // Un Responsable qui relance ne compte pas : seuls la RC et le SAV relancent
+        {
+          id: 'c5',
+          author: 'Chef Exemple',
+          email: 'resp@ex.fr',
+          date: '2026-11-04T10:00:00Z',
+          text: '@Agent Litige des nouvelles ?',
+          mentions: ['litige@ex.fr'],
+        },
       ],
     },
   ];
@@ -92,7 +102,7 @@ test('relances : lignes, cible, délai de réponse et historique classé', () =>
     rows.map((r) => [r.commentId, r.relance, r.service, r.replyHours, r.source]),
     [
       ['c1', true, 'RC', 4, 'regles'],
-      ['c4', false, 'Non renseigné', null, 'historique'],
+      ['c4', false, 'RC / SAV (sans compte)', null, 'historique'],
     ],
   );
   const s = relanceStats(rows);

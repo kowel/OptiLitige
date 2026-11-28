@@ -2076,6 +2076,14 @@
 :root[data-theme='dark'] .relances-list li {
     border: 1px solid #20273b
 }
+:root[data-theme='dark'] .relances-toggle {
+    border: 1px solid #20273b;
+    background: #131826;
+    color: #a9abe7
+}
+:root[data-theme='dark'] .relances-toggle:hover {
+    background: #121930
+}
 :root[data-theme='dark'] .carrier-cost-bar i {
     background: #552324
 }
@@ -4420,6 +4428,14 @@
 }
 :root[data-theme='dark'][data-dark='graphite'] .relances-list li {
     border: 1px solid #36373d
+}
+:root[data-theme='dark'][data-dark='graphite'] .relances-toggle {
+    border: 1px solid #36373d;
+    background: #222226;
+    color: #a9a3e1
+}
+:root[data-theme='dark'][data-dark='graphite'] .relances-toggle:hover {
+    background: #27272c
 }
 :root[data-theme='dark'][data-dark='graphite'] .carrier-cost-bar i {
     background: #552324
@@ -7431,6 +7447,14 @@
 }
 :root[data-theme='light'][data-light='ardoise'] .relances-list li {
     border: 1px solid #eeeff1
+}
+:root[data-theme='light'][data-light='ardoise'] .relances-toggle {
+    border: 1px solid #eeeff1;
+    background: #fbfbfc;
+    color: #45509c
+}
+:root[data-theme='light'][data-light='ardoise'] .relances-toggle:hover {
+    background: #f5f6f9
 }
 :root[data-theme='light'][data-light='ardoise'] .carrier-cost-bar i {
     background: #f6d7d8

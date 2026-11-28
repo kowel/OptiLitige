@@ -8140,6 +8140,46 @@ td.row-end {
   padding: 0 20px 18px;
   font-size: 12px;
 }
+/* Détail des relances : replié par défaut, déroulé au clic */
+.relances-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: calc(100% - 40px);
+  margin: 0 20px 16px;
+  padding: 9px 12px;
+  border: 1px solid #ececf3;
+  border-radius: 8px;
+  background: #fafafd;
+  color: #4b3fb5;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.relances-toggle:hover {
+  background: #f3f1fd;
+}
+.relances-toggle svg {
+  flex: none;
+  transition: transform 0.15s;
+}
+.relances-toggle.open svg {
+  transform: rotate(180deg);
+}
+.relances-toggle .muted {
+  font-weight: 400;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media print {
+  .relances-toggle {
+    display: none;
+  }
+}
 .carrier-cost-bar {
   position: relative;
   display: inline-block;
