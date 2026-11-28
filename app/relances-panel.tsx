@@ -153,6 +153,8 @@ export default function RelancesPanel({
   const byService = s.byService.map((g) => ({ ...g, key: roleName(g.key) }));
   const byMonth = s.byMonth.map((g) => ({ ...g, key: monthName(g.key) }));
   const record = (id: string) => records.find((r) => r.id === id);
+  // Dossiers en cours que la RC ou le SAV signalent « client qui s'impatiente » (bouton de la fiche)
+  const flaggedNow = records.filter((r) => r.clientImpatient && r.status !== 'Résolu').length;
 
   function exportCsv() {
     const lines = [
@@ -234,7 +236,10 @@ export default function RelancesPanel({
             <div>
               <span>Client qui s’impatiente</span>
               <b>{s.client}</b>
-              <small>relances où le client relance, appelle ou menace</small>
+              <small>
+                relances où le client relance, appelle ou menace, ou dossier signalé par la RC
+                {flaggedNow ? ' · ' + flaggedNow + ' dossier(s) signalé(s) en ce moment' : ''}
+              </small>
             </div>
             <div>
               <span>Réponse après une relance</span>

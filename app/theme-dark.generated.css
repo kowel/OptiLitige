@@ -1561,6 +1561,16 @@
 :root[data-theme='dark'] .watch-btn.on {
     background: #291f4c
 }
+:root[data-theme='dark'] .impatient-btn.on {
+    border-color: #ea9f7b;
+    color: #efb394;
+    background: #4e3220
+}
+:root[data-theme='dark'] .impatient-chip {
+    border: 1px solid #77523d;
+    background: #4e3220;
+    color: #efb394
+}
 :root[data-theme='dark'] .reminder-chip {
     background: #291f4c
 }

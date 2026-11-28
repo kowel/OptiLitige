@@ -1563,6 +1563,16 @@
 :root[data-theme='dark'] .watch-btn.on {
     background: #121930
 }
+:root[data-theme='dark'] .impatient-btn.on {
+    border-color: #ea9f7b;
+    color: #efb394;
+    background: #4e3220
+}
+:root[data-theme='dark'] .impatient-chip {
+    border: 1px solid #77523d;
+    background: #4e3220;
+    color: #efb394
+}
 :root[data-theme='dark'] .reminder-chip {
     background: #121930
 }
@@ -3915,6 +3925,16 @@
 }
 :root[data-theme='dark'][data-dark='graphite'] .watch-btn.on {
     background: #27272c
+}
+:root[data-theme='dark'][data-dark='graphite'] .impatient-btn.on {
+    border-color: #ea9f7b;
+    color: #efb394;
+    background: #4e3220
+}
+:root[data-theme='dark'][data-dark='graphite'] .impatient-chip {
+    border: 1px solid #77523d;
+    background: #4e3220;
+    color: #efb394
 }
 :root[data-theme='dark'][data-dark='graphite'] .reminder-chip {
     background: #27272c
@@ -6712,6 +6732,16 @@
     border-color: var(--purple);
     color: var(--purple);
     background: #f6f7fa
+}
+:root[data-theme='light'][data-light='ardoise'] .impatient-btn.on {
+    border-color: #e0703a;
+    color: #b4521f;
+    background: #fff1e8
+}
+:root[data-theme='light'][data-light='ardoise'] .impatient-chip {
+    border: 1px solid #f3c7ad;
+    background: #fff1e8;
+    color: #b4521f
 }
 :root[data-theme='light'][data-light='ardoise'] .reminder-chip {
     background: #f6f7fa;

@@ -23,6 +23,7 @@ import {
 } from '../../catalogs';
 import { CARRIER_DECISIONS } from '../../carrier-tracking.mjs';
 import { claimImported } from '../../claim-imported.mjs';
+import { canFlagImpatience, setImpatience } from '../../impatience.mjs';
 import { syncWtShipments, wtSyncState } from '../welcometrack-store';
 import { WT_SHIPMENTS_KEY, normalizeAlertId } from '../../welcometrack.mjs';
 import { applyInfoEdit, changesText } from '../../edit-info.mjs';
@@ -151,9 +152,9 @@ export async function GET(req: Request) {
       const [recs, people, hist] = await Promise.all([
         db
           .prepare(
-            "SELECT id, payload::jsonb->>'ref' AS ref, (payload::jsonb->'comments')::text AS comments FROM records",
+            "SELECT id, payload::jsonb->>'ref' AS ref, (payload::jsonb->'comments')::text AS comments, (payload::jsonb->'impatienceLog')::text AS impatience FROM records",
           )
-          .all<{ id: string; ref: string; comments: string | null }>(),
+          .all<{ id: string; ref: string; comments: string | null; impatience: string | null }>(),
         db.prepare('SELECT email, name, role FROM members').all<Member>(),
         db
           .prepare('SELECT payload FROM settings WHERE id=?')
@@ -164,6 +165,7 @@ export async function GET(req: Request) {
         id: r.id,
         ref: r.ref,
         comments: JSON.parse(r.comments || '[]'),
+        impatienceLog: JSON.parse(r.impatience || '[]'),
       }));
       const history = hist ? JSON.parse(hist.payload) : {};
       return out({ rows: relanceRows(records, people.results, history) });
@@ -1504,6 +1506,18 @@ export async function POST(req: Request) {
         delete r.prefilled;
       });
       if (refused && refused.status !== 200) return refused;
+      return out({ ok: true });
+    }
+    // « Client qui s'impatiente » : repère posé ou retiré par la RC ou le SAV (app/impatience.mjs).
+    // Sans révision (rev) : un traitement ouvert par le Service Litige n'est pas refusé pour ça.
+    if (b.action === 'client-impatient') {
+      if (!canFlagImpatience(member.role))
+        return out({ error: 'Réservé à la Relation client et au SAV.' }, 403);
+      const refused = await updateRecord(db, String(b.id || ''), (r) => {
+        const error = setImpatience(r, !!b.on, member, now);
+        if (error) return out({ error }, 400);
+      });
+      if (refused) return refused;
       return out({ ok: true });
     }
     if (b.action === 'watch-many') {
