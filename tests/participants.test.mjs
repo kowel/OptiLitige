@@ -46,3 +46,44 @@ test('Dossier importé ou agent inconnu', () => {
   assert.deepEqual(p.others, []);
   assert.equal(participants({}, members).owner, null);
 });
+
+test('échanges : ligne d’ouverture (qui, quand)', async () => {
+  const { openingEntry } = await import('../app/participants.mjs');
+  const members = [
+    { email: 'rc@ex.fr', name: 'Agent RC', role: 'RC' },
+    { email: 'import@ex.fr', name: 'Import', role: 'Désactivé' },
+  ];
+  // Créé dans l'outil : le propriétaire, avec l'heure
+  assert.deepEqual(
+    openingEntry({ creator: 'rc@ex.fr', created: '2026-11-14T09:32:00.000Z' }, members),
+    {
+      author: 'Agent RC',
+      date: '2026-11-14T09:32:00.000Z',
+      withTime: true,
+    },
+  );
+  // Repris de SharePoint, rattaché : le propriétaire, sans heure (date seule)
+  const claimed = {
+    importedAt: 'x',
+    creator: 'rc@ex.fr',
+    requester: 'Agent RC',
+    requesterEmail: 'rc@ex.fr',
+    created: '2025-11-14T00:00:00.000Z',
+  };
+  assert.equal(openingEntry(claimed, members).withTime, false);
+  assert.equal(openingEntry(claimed, members).author, 'Agent RC');
+  // Repris, auteur sans compte : son nom SharePoint (pas le compte d'import)
+  assert.equal(
+    openingEntry(
+      {
+        importedAt: 'x',
+        creator: 'import@ex.fr',
+        requester: 'Manon Exemple',
+        created: '2025-11-14T00:00:00.000Z',
+      },
+      members,
+    ).author,
+    'Manon Exemple',
+  );
+  assert.equal(openingEntry({ creator: 'rc@ex.fr' }, members), null);
+});

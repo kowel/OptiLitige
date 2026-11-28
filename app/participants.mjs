@@ -48,3 +48,18 @@ export function participants(record, members = []) {
     others,
   };
 }
+
+// Première ligne des Échanges : qui a ouvert le dossier et quand (affichée, pas enregistrée :
+// aucune notification). Auteur : le propriétaire (créateur) ; dossier repris de SharePoint dont
+// l'auteur n'a pas de compte : son nom (demandeur). Les dates reprises sans heure (minuit UTC)
+// s'affichent sans heure.
+export function openingEntry(record, members = []) {
+  if (!record?.created || !Number.isFinite(Date.parse(record.created))) return null;
+  const owner = members.find((m) => norm(m.email) === norm(record.creator));
+  const unclaimed =
+    record.importedAt && !String(record.requesterEmail || '').trim() && record.requester;
+  const author =
+    (!unclaimed && owner?.name) || String(record.requester || '').trim() || owner?.name || '—';
+  const withTime = !/T00:00:00(\.000)?Z$/.test(String(record.created));
+  return { author, date: record.created, withTime };
+}
