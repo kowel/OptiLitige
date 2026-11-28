@@ -350,6 +350,10 @@
 :root[data-theme='dark'] .back:focus-visible {
     outline: 3px solid #9082e355
 }
+:root[data-theme='dark'] .list-nav {
+    background: #202539;
+    box-shadow: 0 4px 12px #9082e31f
+}
 :root[data-theme='dark'] .detail-guide .treatment-guide {
     background: #202539
 }

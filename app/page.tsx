@@ -171,6 +171,7 @@ import {
   Sun,
   Receipt,
   BellRing,
+  ChevronLeft,
   ChevronRight,
   CheckCircle2,
   ArrowUpRight,
@@ -1877,6 +1878,11 @@ export default function App() {
     if (listNeighbors?.id !== id || !listNeighbors.next) return undefined;
     return records.find((x) => x.id === listNeighbors.next);
   };
+  // Dossier précédent de la liste (admins : repasse des dossiers en remontant la liste)
+  const prevInList = (id: string) => {
+    if (listNeighbors?.id !== id || !listNeighbors.prev) return undefined;
+    return records.find((x) => x.id === listNeighbors.prev);
+  };
   // Dossiers que la période choisie laisse de côté (message « hors période » sous les onglets)
   const outsidePeriod =
     period === '99999' ? 0 : records.filter((x) => !inPeriod(x.created, period)).length;
@@ -2616,6 +2622,39 @@ export default function App() {
                   <ArrowLeft size={16} />
                   Retour aux dossiers
                 </button>
+                {/* Admins : passer au dossier précédent ou suivant de la liste sans y revenir
+                    (repasse des dossiers un par un). Sans enregistrer : voir « Enregistrer et
+                    dossier précédent / suivant » en bas du traitement. */}
+                {admin && (prevInList(r.id) || nextInList(r.id)) && (
+                  <div className="list-nav" role="group" aria-label="Dossiers de la liste">
+                    <button
+                      type="button"
+                      className="secondary"
+                      disabled={busy || !prevInList(r.id)}
+                      title="Ouvre le dossier au-dessus dans la liste (sans enregistrer)"
+                      onClick={() => openFromList(prevInList(r.id)!)}
+                    >
+                      <ChevronLeft size={15} /> Dossier précédent
+                    </button>
+                    {(() => {
+                      const at = filtered.findIndex((x) => x.id === r.id);
+                      return at >= 0 ? (
+                        <span className="muted">
+                          {at + 1} / {filtered.length}
+                        </span>
+                      ) : null;
+                    })()}
+                    <button
+                      type="button"
+                      className="secondary"
+                      disabled={busy || !nextInList(r.id)}
+                      title="Ouvre le dossier en dessous dans la liste (sans enregistrer)"
+                      onClick={() => openFromList(nextInList(r.id)!)}
+                    >
+                      Dossier suivant <ChevronRight size={15} />
+                    </button>
+                  </div>
+                )}
                 {lateOf(r).length > 0 && (
                   <div role="status" className="late-banner">
                     <b>Hors délai</b>
@@ -3240,9 +3279,16 @@ export default function App() {
                             'creditCreated',
                           ].map((k) => [k, fd.get(k) || null]),
                         );
-                        const goNext =
-                          (e.nativeEvent as SubmitEvent).submitter?.getAttribute('name') === 'next';
-                        const next = goNext ? nextInList(r.id) : undefined;
+                        const submitter = (e.nativeEvent as SubmitEvent).submitter?.getAttribute(
+                          'name',
+                        );
+                        const goNext = submitter === 'next' || submitter === 'prev';
+                        const next =
+                          submitter === 'next'
+                            ? nextInList(r.id)
+                            : submitter === 'prev'
+                              ? prevInList(r.id)
+                              : undefined;
                         const ok = await saveTreatment(r, {
                           ...edit,
                           ...dates,
@@ -3702,6 +3748,16 @@ export default function App() {
                           <Check size={16} />
                           Enregistrer le traitement
                         </button>
+                        {canEdit && admin && prevInList(r.id) && (
+                          <button
+                            name="prev"
+                            className="secondary"
+                            disabled={busy}
+                            title="Enregistre ce dossier puis ouvre celui au-dessus dans la liste"
+                          >
+                            <ChevronLeft size={15} /> Enregistrer et dossier précédent
+                          </button>
+                        )}
                         {canEdit && nextInList(r.id) && (
                           <button
                             name="next"

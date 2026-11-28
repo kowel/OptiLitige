@@ -352,6 +352,10 @@
 :root[data-theme='dark'] .back:focus-visible {
     outline: 3px solid #8786e955
 }
+:root[data-theme='dark'] .list-nav {
+    background: #131725;
+    box-shadow: 0 4px 12px #8786e91f
+}
 :root[data-theme='dark'] .detail-guide .treatment-guide {
     background: #131725
 }
@@ -2714,6 +2718,10 @@
 }
 :root[data-theme='dark'][data-dark='graphite'] .back:focus-visible {
     outline: 3px solid #9082e355
+}
+:root[data-theme='dark'][data-dark='graphite'] .list-nav {
+    background: #212125;
+    box-shadow: 0 4px 12px #9082e31f
 }
 :root[data-theme='dark'][data-dark='graphite'] .detail-guide .treatment-guide {
     background: #212125
@@ -5149,6 +5157,10 @@
 }
 :root[data-theme='light'][data-light='ardoise'] .back:focus-visible {
     outline: 3px solid #5968c855
+}
+:root[data-theme='light'][data-light='ardoise'] .list-nav {
+    background: #fff;
+    box-shadow: 0 4px 12px #5968c81f
 }
 :root[data-theme='light'][data-light='ardoise'] .detail-guide .treatment-guide {
     background: white;
