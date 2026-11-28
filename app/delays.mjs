@@ -29,11 +29,28 @@ const span = (from, to) => {
   return Number.isFinite(a) && Number.isFinite(b) && b >= a ? (b - a) / DAY : null;
 };
 
+// Dossiers repris de SharePoint : l'étape y était déjà atteinte, sans date. Fin estimée : la
+// clôture du dossier (ou, côté transporteur, sa réponse si le dossier est encore ouvert).
+const imported = (r) => !!r.importedAt;
+const closedAt = (r) => (r.status === 'Résolu' && r.closed ? r.closed : null);
+/** Fin de la solution client : date posée par l'outil, sinon estimée pour un dossier repris */
+export const clientEnd = (r) =>
+  r.clientSolvedAt ||
+  (imported(r) && FINAL_CLIENT_STAGES.includes(r.clientStage) ? closedAt(r) : null);
+/** Fin du dossier transporteur : date posée par l'outil, sinon estimée pour un dossier repris */
+export const carrierEnd = (r) =>
+  r.carrierClosedAt ||
+  (imported(r) && r.carrierStatus === 'Clos' ? closedAt(r) || r.carrierReplyAt || null : null);
 /** Délai client (jours) : ouverture → solution client définitive */
-export const clientDays = (r) => (r.clientSolvedAt ? span(r.created, r.clientSolvedAt) : null);
+export const clientDays = (r) => {
+  const end = clientEnd(r);
+  return end ? span(r.created, end) : null;
+};
 /** Délai transporteur (jours) : transmission au transporteur → dossier transporteur clos */
-export const carrierDays = (r) =>
-  r.carrierClosedAt && r.carrierSentAt ? span(r.carrierSentAt, r.carrierClosedAt) : null;
+export const carrierDays = (r) => {
+  const end = carrierEnd(r);
+  return end && r.carrierSentAt ? span(r.carrierSentAt, end) : null;
+};
 /** Délai commun (jours) : ouverture → clôture du dossier */
 export const commonDays = (r) =>
   r.status === 'Résolu' && r.closed ? span(r.created, r.closed) : null;

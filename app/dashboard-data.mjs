@@ -47,6 +47,14 @@ export function topGroups(rows, limit = 5) {
     },
   ];
 }
+// Propriétaire d'un dossier : la personne qui l'a créé. Dossier repris de SharePoint dont
+// l'auteur n'a pas encore de compte : son nom (colonne « Détenteur »), en attendant que
+// l'ajout de son compte le lui rattache (app/claim-imported.mjs).
+export function ownerOf(r) {
+  if (r?.importedAt && !String(r.requesterEmail || '').trim() && String(r.requester || '').trim())
+    return String(r.requester).trim();
+  return String(r?.creator || '').trim();
+}
 export function buildDashboardData(records, members = [], now = new Date()) {
   const today = creditToday(now),
     base = new Date(today + 'T12:00:00Z');
@@ -139,24 +147,27 @@ export function buildDashboardData(records, members = [], now = new Date()) {
   }
   if (unknownAge) ageRows.push({ label: 'Date inconnue', value: unknownAge, color: '#a4adbd' });
   const memberByEmail = new Map(members.map((m) => [m.email, m]));
+  // Dossiers ouverts par agent : la personne qui a créé le dossier (son propriétaire)
   const workload = topGroups(
-    group(active, (r) =>
-      r.assignee ? memberByEmail.get(r.assignee)?.name || r.assignee : 'Non attribué',
-    ),
-    5,
+    group(active, (r) => {
+      const owner = ownerOf(r);
+      return owner ? memberByEmail.get(owner)?.name || owner : 'Non renseigné';
+    }),
+    8,
   );
   // Dossiers ouverts selon le service de leur propriétaire (créateur du dossier)
   const sources = group(active, (r) => {
+    // Compte désactivé (ex. compte qui a fait la reprise) : traité comme sans compte
     const role = memberByEmail.get(r.creator)?.role;
     return role === 'RC'
       ? 'Relation client'
       : role === 'SAV'
         ? 'SAV'
-        : role
+        : role && role !== 'Désactivé'
           ? role
-          : String(r.id || '').startsWith('import-')
+          : r.importedAt || String(r.id || '').startsWith('import-')
             ? 'Repris de l’ancienne liste'
-            : 'Autre';
+            : 'Ancien compte';
   });
   const brandOf = (r) => (r.brand || 'Non renseignée').toUpperCase(),
     carrierOf = (r) => (r.carrier || 'Non renseigné').toUpperCase(),

@@ -120,7 +120,7 @@ export default function AnalyticsFilterBar({
         {select('origin', 'Toutes les origines', plain(['Transport', 'Interne']))}
         {select('source', 'Tous les services', Object.entries(SOURCE_LABELS) as [string, string][])}
         {select('assignee', 'Tous les agents', [
-          ['none', 'Non attribués'],
+          ['none', 'Auteur sans compte'],
           ...options.members.map((m) => [m.email, m.name || m.email] as [string, string]),
         ])}
         {select('priority', 'Toutes', [

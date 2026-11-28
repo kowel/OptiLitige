@@ -203,7 +203,7 @@ export function buildReport(records, period, filters = EMPTY_ANALYTICS, members 
         return (
           label +
           ' : ' +
-          (v === 'none' ? 'non attribués' : members.find((m) => m.email === v)?.name || v)
+          (v === 'none' ? 'auteur sans compte' : members.find((m) => m.email === v)?.name || v)
         );
       if (k === 'priority') return label + ' : ' + (v === 'urgent' ? 'urgents' : 'hors urgents');
       if (k === 'credit') return label + ' : ' + (v === 'with' ? 'avec avoir' : 'sans avoir');
