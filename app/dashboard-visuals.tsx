@@ -57,6 +57,9 @@ interface DashboardVisualsProps {
   view: string;
   onStatus?: (status: string) => void;
   expanded?: boolean;
+  /** Dossiers du « rythme des litiges » quand ils diffèrent de `records` (analyses : toutes les
+   * dates d'ouverture, la courbe montrant ses propres 14 jours ou 12 semaines) */
+  activityRecords?: Dossier[];
 }
 interface AnalyticsDashboardProps {
   records: Dossier[];
@@ -632,8 +635,12 @@ export default function DashboardVisuals({
   view,
   onStatus,
   expanded = false,
+  activityRecords,
 }: DashboardVisualsProps) {
   const d = buildDashboardData(records, members);
+  // Rythme : ouvertures et clôtures des 14 derniers jours ou 12 dernières semaines, quelle que
+  // soit la période choisie (sinon tout ce qui précède la période apparaîtrait à zéro)
+  const pace = activityRecords ? buildDashboardData(activityRecords, members) : d;
   const isRC = view === 'RC' || view === 'SAV',
     isLitige = view === 'Service Litige';
   const { layouts, setLayout } = useContext(ChartPrefsContext);
@@ -711,7 +718,7 @@ export default function DashboardVisuals({
           </div>
           <ActivityGraph
             key={activityScale}
-            data={weekly ? d.activityWeeks : d.activity}
+            data={weekly ? pace.activityWeeks : pace.activity}
             format={activityFormat}
             span={weekly ? '12 semaines' : '14 jours'}
           />
@@ -741,7 +748,7 @@ export default function DashboardVisuals({
             Truck,
             'blue',
             stat('origins', 'D’où viennent les litiges ?', d.origins),
-            <div className="visual-card-note">{d.total} dossier(s) sur la période</div>,
+            <div className="visual-card-note">{d.total} dossier(s) au total</div>,
           ),
           card(
             'activeTypes',
@@ -868,7 +875,7 @@ export default function DashboardVisuals({
           card(
             'workload',
             'Répartition des dossiers ouverts par agent',
-            'Dossiers encore ouverts, selon l’agent qui les suit',
+            'Dossiers encore ouverts, selon l’agent qui les a créés',
             Users,
             'teal',
             stat('workload', 'Répartition des dossiers ouverts par agent', d.workload),
@@ -1037,6 +1044,7 @@ export function AnalyticsDashboard({
       </div>
       <DashboardVisuals
         records={rows}
+        activityRecords={records}
         members={members}
         view="Admin"
         expanded
@@ -1045,10 +1053,12 @@ export function AnalyticsDashboard({
       <div className="analytics-footnote">
         <Clock size={14} />
         <span>
-          Les graphiques utilisent la date d’ouverture pour la période choisie. Délai client : de
-          l’ouverture à la solution client définitive. Délai transporteur : de la transmission au
-          transporteur à la clôture de son dossier. Délai dossier : de l’ouverture à la clôture. Les
-          dossiers réouverts sont considérés comme ouverts.
+          Les graphiques utilisent la date d’ouverture pour la période choisie, sauf « Le rythme des
+          litiges » qui montre toujours les 14 derniers jours ou les 12 dernières semaines (avec les
+          autres filtres). Délai client : de l’ouverture à la solution client définitive. Délai
+          transporteur : de la transmission au transporteur à la clôture de son dossier. Délai
+          dossier : de l’ouverture à la clôture. Les dossiers réouverts sont considérés comme
+          ouverts.
         </span>
       </div>
     </>

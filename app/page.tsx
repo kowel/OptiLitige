@@ -213,6 +213,7 @@ import ContentieuxSettingsPanel from './contentieux-settings';
 import ContentieuxDashboard from './contentieux-dashboard';
 import type { ContentieuxFocus } from './contentieux-view';
 import { createsDisputes, isAdmin, seesAnalytics, treatsDisputes } from './roles.mjs';
+import { ownerOf } from './dashboard-data.mjs';
 import MyData from './my-data';
 import DossierRecap from './dossier-recap';
 
@@ -1698,7 +1699,22 @@ export default function App() {
           carriers: listOf(data.catalogs?.carriers || carriers, 'carrier'),
           types: listOf(data.types, 'type'),
           products: listOf(data.catalogs?.products || products, 'productType', false),
-          members: (data.members || []).map((m) => ({ email: m.email, name: m.name })),
+          // Filtre « Agent (créateur) » : comptes actifs, puis auteurs de dossiers repris de
+          // SharePoint qui n'ont pas de compte (comptés sous leur nom)
+          members: [
+            ...(data.members || [])
+              .filter((m) => m.role !== 'Désactivé')
+              .map((m) => ({ email: m.email, name: m.name })),
+            ...[
+              ...new Set(
+                records
+                  .map(ownerOf)
+                  .filter((o) => o && !(data.members || []).some((m) => m.email === o)),
+              ),
+            ]
+              .sort((x, y) => x.localeCompare(y, 'fr'))
+              .map((o) => ({ email: o, name: o + ' (sans compte)' })),
+          ],
         }
       : { brands: [], stores: [], carriers: [], types: [], products: [], members: [] };
   const creditSettings = data.creditSettings || DEFAULT_CREDIT_SETTINGS;

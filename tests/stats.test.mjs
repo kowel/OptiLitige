@@ -9,7 +9,7 @@ const records = [
     origin: 'Transport',
     carrier: 'DPD',
     brand: 'CYBERTEK',
-    assignee: 'li@x.fr',
+    creator: 'li@x.fr',
     status: 'Résolu',
     created: d(1),
     closed: d(11),
@@ -77,7 +77,7 @@ test('Par enseigne et par agent (avec noms)', () => {
     now,
     label: (e) => (e === 'li@x.fr' ? 'Léa' : e),
   });
-  assert.deepEqual(agents.rows.map((r) => r.key).sort(), ['Léa', 'Non attribué']);
+  assert.deepEqual(agents.rows.map((r) => r.key).sort(), ['Léa', 'Non renseigné']);
 });
 
 test('Délai transporteur : règle SLA active, sinon 15 jours', () => {
