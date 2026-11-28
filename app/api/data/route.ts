@@ -24,6 +24,7 @@ import {
 import { CARRIER_DECISIONS } from '../../carrier-tracking.mjs';
 import { claimImported } from '../../claim-imported.mjs';
 import { canFlagImpatience, setImpatience } from '../../impatience.mjs';
+import { closedDay, closedDayError, closedFromDay } from '../../closing-date.mjs';
 import { syncWtShipments, wtSyncState } from '../welcometrack-store';
 import { WT_SHIPMENTS_KEY, normalizeAlertId } from '../../welcometrack.mjs';
 import { applyInfoEdit, changesText } from '../../edit-info.mjs';
@@ -1888,6 +1889,24 @@ export async function POST(req: Request) {
       ) {
         // Dossier déjà résolu dont le résultat est complété ou corrigé : la conclusion suit
         r.resolution = { verdict: verdictOf(String(r.outcome)), reason: String(r.outcome) };
+      }
+      // Date de clôture choisie (ancien dossier sans date, ou clôture saisie après coup) :
+      // Service Litige, Responsables, admins (app/closing-date.mjs)
+      if (
+        b.status === 'Résolu' &&
+        litige &&
+        typeof b.closedDate === 'string' &&
+        b.closedDate &&
+        b.closedDate !== closedDay(r)
+      ) {
+        const error = closedDayError(b.closedDate, r.created, now);
+        if (error) return out({ error }, 400);
+        r.closed = closedFromDay(b.closedDate);
+        r.history!.push({
+          date: now,
+          text: 'Date de clôture : ' + b.closedDate.split('-').reverse().join('/'),
+          author: member.name,
+        });
       }
       if (b.status === 'Réouvert' && r.status === 'Résolu') {
         if (!String(b.reopenReason || '').trim())
