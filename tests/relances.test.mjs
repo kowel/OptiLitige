@@ -43,6 +43,7 @@ test('relances : client qui s’impatiente', () => {
 const members = [
   { email: 'litige@ex.fr', name: 'Agent Litige', role: 'Service Litige' },
   { email: 'rc@ex.fr', name: 'Agent RC', role: 'RC' },
+  { email: 'resp@ex.fr', name: 'Chef Exemple', role: 'Responsable' },
 ];
 
 test('relances : lignes, cible, délai de réponse et historique classé', () => {
@@ -80,6 +81,15 @@ test('relances : lignes, cible, délai de réponse et historique classé', () =>
           date: '2026-11-03T10:00:00Z',
           text: '@Personne HISTO le colis est arrivé ?',
         },
+        // Un Responsable qui relance ne compte pas : seuls la RC et le SAV relancent
+        {
+          id: 'c5',
+          author: 'Chef Exemple',
+          email: 'resp@ex.fr',
+          date: '2026-11-04T10:00:00Z',
+          text: '@Agent Litige des nouvelles ?',
+          mentions: ['litige@ex.fr'],
+        },
       ],
     },
   ];
@@ -92,7 +102,7 @@ test('relances : lignes, cible, délai de réponse et historique classé', () =>
     rows.map((r) => [r.commentId, r.relance, r.service, r.replyHours, r.source]),
     [
       ['c1', true, 'RC', 4, 'regles'],
-      ['c4', false, 'Non renseigné', null, 'historique'],
+      ['c4', false, 'RC / SAV (sans compte)', null, 'historique'],
     ],
   );
   const s = relanceStats(rows);
@@ -102,4 +112,52 @@ test('relances : lignes, cible, délai de réponse et historique classé', () =>
   assert.equal(s.medianReplyHours, 4);
   assert.equal(s.byService[0].key, 'RC');
   assert.equal(s.topDossiers[0].ref, 'LIT-1');
+});
+
+test('relances : repère « client qui s’impatiente » posé par la RC', async () => {
+  const { setImpatience, impatientAt } = await import('../app/impatience.mjs');
+  const rc = { email: 'rc@ex.fr', name: 'Agent RC', role: 'RC' };
+  const r = { id: 'b', ref: 'LIT-2', status: 'Pris en charge', comments: [] };
+  // Réservé à la RC et au SAV
+  assert.ok(
+    setImpatience({ ...r }, true, { ...rc, role: 'Service Litige' }, '2026-11-05T09:00:00Z'),
+  );
+  assert.equal(setImpatience(r, true, rc, '2026-11-05T09:00:00Z'), null);
+  assert.equal(r.clientImpatient, true);
+  assert.match(r.history.at(-1).text, /signalé/);
+  setImpatience(r, false, rc, '2026-11-07T09:00:00Z');
+  assert.equal(r.clientImpatient, false);
+  assert.equal(impatientAt(r, '2026-11-04T09:00:00Z'), false);
+  assert.equal(impatientAt(r, '2026-11-05T08:30:00Z'), true); // posé dans l'heure qui suit
+  assert.equal(impatientAt(r, '2026-11-06T09:00:00Z'), true);
+  assert.equal(impatientAt(r, '2026-11-08T09:00:00Z'), false);
+  // Une relance faite pendant que le repère est posé compte « client qui s'impatiente »
+  r.comments = [
+    {
+      id: 'd1',
+      author: 'Agent RC',
+      email: 'rc@ex.fr',
+      date: '2026-11-06T10:00:00Z',
+      text: '@Agent Litige des nouvelles ?',
+      mentions: ['litige@ex.fr'],
+    },
+    {
+      id: 'd2',
+      author: 'Agent RC',
+      email: 'rc@ex.fr',
+      date: '2026-11-09T10:00:00Z',
+      text: '@Agent Litige des nouvelles ?',
+      mentions: ['litige@ex.fr'],
+    },
+  ];
+  const rows = relanceRows([r], members);
+  assert.deepEqual(
+    rows.map((x) => [x.commentId, x.client, x.flagged]),
+    [
+      ['d1', true, true],
+      ['d2', false, false],
+    ],
+  );
+  // Un dossier résolu ne peut pas être signalé
+  assert.ok(setImpatience({ status: 'Résolu' }, true, rc, '2026-11-10T09:00:00Z'));
 });

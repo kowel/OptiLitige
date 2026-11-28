@@ -1143,3 +1143,43 @@ test('API locale : espace Contentieux (saisie, liaison au dossier, version, supp
   assert.equal((await post({ action: 'contentieux-delete', id: c.id })).status, 200);
   assert.ok(!(await get()).contentieux.some((x) => x.id === saved.id));
 });
+
+test('API locale : repère « client qui s’impatiente »', async () => {
+  const login = await fetch(origin + '/signin-with-chatgpt?return_to=/', { redirect: 'manual' });
+  const cookie = login.headers.get('set-cookie')?.split(';')[0];
+  const get = async () =>
+    (await fetch(origin + '/api/data', { headers: { Cookie: cookie } })).json();
+  const post = async (p) => {
+    const r = await fetch(origin + '/api/data', {
+      method: 'POST',
+      headers: { Cookie: cookie, Origin: origin, 'Content-Type': 'application/json' },
+      body: JSON.stringify(p),
+    });
+    return { status: r.status, body: await r.json() };
+  };
+  const created = await post({
+    action: 'create',
+    record: {
+      title: 'Test impatience',
+      customer: 'Fictif',
+      customerAccount: 'C-TEST',
+      order: 'LOCAL-IMPATIENT',
+      amount: 10,
+      origin: 'Transport',
+      type: 'Inversion',
+      brand: 'GROSBILL',
+      productType: 'PC',
+      description: 'Test technique local uniquement.',
+    },
+  });
+  assert.equal(created.status, 200);
+  const id = created.body.id;
+  assert.equal((await post({ action: 'client-impatient', id, on: true })).status, 200);
+  let r = (await get()).records.find((x) => x.id === id);
+  assert.equal(r.clientImpatient, true);
+  assert.equal(r.impatienceLog.length, 1);
+  assert.equal((await post({ action: 'client-impatient', id, on: false })).status, 200);
+  r = (await get()).records.find((x) => x.id === id);
+  assert.equal(r.clientImpatient, false);
+  assert.equal((await post({ action: 'client-impatient', id: 'inconnu', on: true })).status, 404);
+});

@@ -1,11 +1,13 @@
 'use client';
-import { Download, MessageCircleQuestion } from 'lucide-react';
+import { ChevronDown, Download, MessageCircleQuestion } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { csvCell } from './csv.mjs';
 import { inPeriod, periodLabel } from './period.mjs';
 import { relanceStats } from './relances.mjs';
 import { formatHours } from './sla.mjs';
 import type { Dossier } from './types';
+
+const DETAIL_KEY = 'optilitige-relances-detail';
 
 type Row = {
   id: string;
@@ -110,6 +112,24 @@ export default function RelancesPanel({
   const [all, setAll] = useState<Row[] | null>(null);
   const [error, setError] = useState('');
   const [showList, setShowList] = useState(false);
+  // Détail (tableaux, dossiers les plus relancés, liste) replié par défaut : seuls le titre et
+  // les 4 chiffres restent. Choix retenu sur ce poste (simple confort, sans conséquence s'il
+  // est perdu). Lu au premier affichage : le bouton n'apparaît qu'une fois les relances
+  // chargées dans le navigateur, donc pas d'écart avec le rendu serveur.
+  const [detail, setDetail] = useState(() => {
+    try {
+      return typeof window !== 'undefined' && localStorage.getItem(DETAIL_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
+  const toggleDetail = () => {
+    const next = !detail;
+    setDetail(next);
+    try {
+      localStorage.setItem(DETAIL_KEY, next ? '1' : '0');
+    } catch {}
+  };
   useEffect(() => {
     let live = true;
     fetch('/api/data?part=relances', { cache: 'no-store' })
@@ -133,6 +153,8 @@ export default function RelancesPanel({
   const byService = s.byService.map((g) => ({ ...g, key: roleName(g.key) }));
   const byMonth = s.byMonth.map((g) => ({ ...g, key: monthName(g.key) }));
   const record = (id: string) => records.find((r) => r.id === id);
+  // Dossiers en cours que la RC ou le SAV signalent « client qui s'impatiente » (bouton de la fiche)
+  const flaggedNow = records.filter((r) => r.clientImpatient && r.status !== 'Résolu').length;
 
   function exportCsv() {
     const lines = [
@@ -177,8 +199,8 @@ export default function RelancesPanel({
             <MessageCircleQuestion size={18} /> Relances au Service Litige
           </h2>
           <span className="muted">
-            Messages qui taguent le Service Litige pour demander des nouvelles d’un dossier ·
-            visible par les admins seulement
+            Fois où un agent RC ou SAV relance le Service Litige (où en est le dossier, a-t-on une
+            réponse ?) · visible par les admins seulement
             {periodLabel(period) ? ' · ' + periodLabel(period) : ''}
           </span>
         </div>
@@ -214,7 +236,10 @@ export default function RelancesPanel({
             <div>
               <span>Client qui s’impatiente</span>
               <b>{s.client}</b>
-              <small>relances où le client relance, appelle ou menace</small>
+              <small>
+                relances où le client relance, appelle ou menace, ou dossier signalé par la RC
+                {flaggedNow ? ' · ' + flaggedNow + ' dossier(s) signalé(s) en ce moment' : ''}
+              </small>
             </div>
             <div>
               <span>Réponse après une relance</span>
@@ -222,84 +247,108 @@ export default function RelancesPanel({
               <small>médiane · {s.unanswered} relance(s) restée(s) sans réponse écrite</small>
             </div>
           </div>
-          <GroupTable title="Par service" first="Service" rows={byService} />
-          <GroupTable title="Par agent" first="Agent" rows={s.byAgent} />
-          <GroupTable title="Par personne relancée" first="Service Litige" rows={s.byTarget} />
-          <GroupTable title="Par mois" first="Mois" rows={byMonth} />
-          {s.topDossiers.length > 0 && (
-            <div className="relances-block">
-              <h3>Dossiers les plus relancés</h3>
-              <div className="table-scroll">
-                <table className="stats-table">
-                  <thead>
-                    <tr>
-                      <th>Dossier</th>
-                      <th>Relances</th>
-                      <th>Client qui s’impatiente</th>
-                      <th>Dernière relance</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {s.topDossiers.map((d) => {
-                      const r = record(d.id);
+          <button
+            type="button"
+            className={'relances-toggle' + (detail ? ' open' : '')}
+            aria-expanded={detail}
+            onClick={toggleDetail}
+          >
+            <ChevronDown size={16} />
+            {detail ? 'Masquer le détail' : 'Voir le détail'}
+            <span className="muted">
+              par service, agent, personne relancée et mois · dossiers les plus relancés
+            </span>
+          </button>
+          {detail && (
+            <>
+              <GroupTable title="Par service" first="Service" rows={byService} />
+              <GroupTable title="Par agent" first="Agent" rows={s.byAgent} />
+              <GroupTable title="Par personne relancée" first="Service Litige" rows={s.byTarget} />
+              <GroupTable title="Par mois" first="Mois" rows={byMonth} />
+              {s.topDossiers.length > 0 && (
+                <div className="relances-block">
+                  <h3>Dossiers les plus relancés</h3>
+                  <div className="table-scroll">
+                    <table className="stats-table">
+                      <thead>
+                        <tr>
+                          <th>Dossier</th>
+                          <th>Relances</th>
+                          <th>Client qui s’impatiente</th>
+                          <th>Dernière relance</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {s.topDossiers.map((d) => {
+                          const r = record(d.id);
+                          return (
+                            <tr key={d.id}>
+                              <td>
+                                {r ? (
+                                  <button
+                                    type="button"
+                                    className="text-btn"
+                                    onClick={() => onOpen(r)}
+                                  >
+                                    {d.ref}
+                                  </button>
+                                ) : (
+                                  d.ref
+                                )}{' '}
+                                {r && <span className="muted">{r.title}</span>}
+                              </td>
+                              <td>{d.relances}</td>
+                              <td>{d.client}</td>
+                              <td>{day(d.last)}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+              <div className="relances-block">
+                <button type="button" className="text-btn" onClick={() => setShowList(!showList)}>
+                  {showList ? 'Masquer' : 'Voir'} les {relances.length} relance(s) de la période
+                </button>
+                {showList && (
+                  <ul className="relances-list">
+                    {relances.slice(0, 300).map((r) => {
+                      const rec = record(r.id);
                       return (
-                        <tr key={d.id}>
-                          <td>
-                            {r ? (
-                              <button type="button" className="text-btn" onClick={() => onOpen(r)}>
-                                {d.ref}
+                        <li key={r.commentId}>
+                          <span className="muted">
+                            {day(r.date)} ·{' '}
+                            {rec ? (
+                              <button
+                                type="button"
+                                className="text-btn"
+                                onClick={() => onOpen(rec)}
+                              >
+                                {r.ref}
                               </button>
                             ) : (
-                              d.ref
+                              r.ref
                             )}{' '}
-                            {r && <span className="muted">{r.title}</span>}
-                          </td>
-                          <td>{d.relances}</td>
-                          <td>{d.client}</td>
-                          <td>{day(d.last)}</td>
-                        </tr>
+                            · {r.author} ({roleName(r.service)}) → {r.target}
+                            {r.client ? ' · client qui s’impatiente' : ''}
+                          </span>
+                          <q>{r.text}</q>
+                        </li>
                       );
                     })}
-                  </tbody>
-                </table>
+                  </ul>
+                )}
               </div>
-            </div>
+              <p className="muted relances-note">
+                Les messages repris de SharePoint ont été classés un par un d’après leur sens ; les
+                nouveaux messages sont reconnus automatiquement par leurs tournures (« des nouvelles
+                ? », « un retour ? », « toujours rien », « je me permets de relancer »…). Les
+                relances faites hors de l’outil (Teams, mail, téléphone) ne sont pas comptées.
+              </p>
+            </>
           )}
-          <div className="relances-block">
-            <button type="button" className="text-btn" onClick={() => setShowList(!showList)}>
-              {showList ? 'Masquer' : 'Voir'} les {relances.length} relance(s) de la période
-            </button>
-            {showList && (
-              <ul className="relances-list">
-                {relances.slice(0, 300).map((r) => {
-                  const rec = record(r.id);
-                  return (
-                    <li key={r.commentId}>
-                      <span className="muted">
-                        {day(r.date)} ·{' '}
-                        {rec ? (
-                          <button type="button" className="text-btn" onClick={() => onOpen(rec)}>
-                            {r.ref}
-                          </button>
-                        ) : (
-                          r.ref
-                        )}{' '}
-                        · {r.author} ({roleName(r.service)}) → {r.target}
-                        {r.client ? ' · client qui s’impatiente' : ''}
-                      </span>
-                      <q>{r.text}</q>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
-          <p className="muted relances-note">
-            Les messages repris de SharePoint ont été classés un par un d’après leur sens ; les
-            nouveaux messages sont reconnus automatiquement par leurs tournures (« des nouvelles ?
-            », « un retour ? », « toujours rien », « je me permets de relancer »…). Les relances
-            faites hors de l’outil (Teams, mail, téléphone) ne sont pas comptées.
-          </p>
         </>
       )}
     </section>
