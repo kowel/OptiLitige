@@ -79,11 +79,11 @@ const formatMoney = (n: number) =>
   }).format(n || 0);
 const number = (n: number) =>
   new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 }).format(n || 0);
-function EmptyChart() {
+function EmptyChart({ text = 'Les graphiques se rempliront avec vos dossiers.' }) {
   return (
     <div className="chart-empty">
       <ChartNoAxesCombined size={27} />
-      <p>Les graphiques se rempliront avec vos dossiers.</p>
+      <p>{text}</p>
     </div>
   );
 }
@@ -483,6 +483,7 @@ export function StatChart({
   currency = false,
   fallback = 'bars',
   onSelect,
+  empty,
 }: {
   id: string;
   label: string;
@@ -490,6 +491,8 @@ export function StatChart({
   currency?: boolean;
   fallback?: ChartFormat;
   onSelect?: (label: string) => void;
+  /** Message quand toutes les valeurs sont nulles (sinon le message d'attente par défaut) */
+  empty?: string;
 }) {
   const [format, setFormat] = useChartFormat(id, fallback, SHARE_FORMATS);
   const colored = rows.map((r, i) => ({
@@ -506,7 +509,7 @@ export function StatChart({
         chartLabel={label}
       />
       {!rows.some((r) => r.value) ? (
-        <EmptyChart />
+        <EmptyChart text={empty} />
       ) : format === 'columns' ? (
         <Columns rows={colored} currency={currency} />
       ) : format === 'donut' || format === 'pie' ? (
@@ -813,10 +816,23 @@ export default function DashboardVisuals({
               'Montants renseignés dans les dossiers',
               Wallet,
               'teal',
-              stat('finance', 'L’impact financier', d.finance, true),
-              <div className="visual-card-note">
-                Montant des avoirs : <b>{formatMoney(d.creditTotal)}</b>
-              </div>,
+              <StatChart
+                id="finance"
+                label="L’impact financier"
+                rows={d.finance}
+                currency
+                empty={
+                  expanded
+                    ? 'Aucun avoir ni indemnisation sur les dossiers de cette période.'
+                    : 'Aucun avoir ni indemnisation renseigné pour l’instant.'
+                }
+              />,
+              // Note seulement s'il y a des avoirs émis (un « 0,00 € » sur fond rouge inquiétait)
+              d.creditTotal > 0 ? (
+                <div className="visual-card-note">
+                  Montant des avoirs : <b>{formatMoney(d.creditTotal)}</b>
+                </div>
+              ) : undefined,
             ),
             card(
               'brands',
