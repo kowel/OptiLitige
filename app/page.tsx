@@ -215,7 +215,12 @@ import ContentieuxDashboard from './contentieux-dashboard';
 import type { ContentieuxFocus } from './contentieux-view';
 import { createsDisputes, isAdmin, seesAnalytics, treatsDisputes } from './roles.mjs';
 import { ownerOf } from './dashboard-data.mjs';
-import { IMPATIENT_LABEL, canFlagImpatience, setImpatience } from './impatience.mjs';
+import {
+  IMPATIENT_LABEL,
+  canFlagImpatience,
+  lastImpatience,
+  setImpatience,
+} from './impatience.mjs';
 import MyData from './my-data';
 import DossierRecap from './dossier-recap';
 
@@ -1413,7 +1418,7 @@ export default function App() {
                             : p.action === 'client-impatient'
                               ? p.on
                                 ? IMPATIENT_LABEL +
-                                  ' : signalé au Service Litige (compté dans les analyses)'
+                                  ' : repère posé, visible du Service Litige (sans notification)'
                                 : IMPATIENT_LABEL + ' : repère retiré'
                               : p.action === 'watch'
                                 ? p.on
@@ -2733,7 +2738,12 @@ export default function App() {
                       r.clientImpatient && (
                         <span
                           className="impatient-chip"
-                          title="Signalé par la Relation client ou le SAV"
+                          title={(() => {
+                            const l = lastImpatience(r);
+                            return l
+                              ? 'Signalé par ' + l.name + ' le ' + dateTime(l.date)
+                              : 'Signalé par la Relation client ou le SAV';
+                          })()}
                         >
                           <Flame size={14} /> {IMPATIENT_LABEL}
                         </span>
