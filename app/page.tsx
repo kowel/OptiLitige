@@ -215,6 +215,7 @@ import ContentieuxDashboard from './contentieux-dashboard';
 import type { ContentieuxFocus } from './contentieux-view';
 import { createsDisputes, isAdmin, seesAnalytics, treatsDisputes } from './roles.mjs';
 import { ownerOf } from './dashboard-data.mjs';
+import { closedDay, closedDayError, closedFromDay } from './closing-date.mjs';
 import {
   IMPATIENT_LABEL,
   canFlagImpatience,
@@ -266,6 +267,8 @@ type EditForm = Omit<Partial<Dossier>, 'credit' | 'disputeValue' | 'compensation
   verdict?: string;
   reason?: string;
   reopenReason?: string;
+  /** Date de clôture choisie à la main (AAAA-MM-JJ), app/closing-date.mjs */
+  closedDate?: string;
 };
 // Action envoyée à l'API (POST /api/data) ou appliquée localement en démonstration.
 // Les champs dépendent de l'action ; ceux du formulaire de traitement y sont recopiés.
@@ -305,7 +308,8 @@ const NONE: any[] = [];
 // Vue des responsables : dossiers pré-remplis d'après les échanges, pas encore vérifiés, et
 // dossiers résolus dont la clôture est incomplète (résultat ou imputation manquant)
 const TO_CHECK = 'À vérifier ou compléter';
-const incompleteClosure = (x: Dossier) => x.status === 'Résolu' && (!x.outcome || !x.imputation);
+const incompleteClosure = (x: Dossier) =>
+  x.status === 'Résolu' && (!x.outcome || !x.imputation || !x.closed);
 const toCheck = (x: Dossier) => !!x.prefilled?.fields?.length || incompleteClosure(x);
 const statuses = ['Nouveau', 'Pris en charge', 'En attente RC', 'Résolu', 'Réouvert'],
   // Le SAV déclare des litiges comme la Relation client (mêmes droits, même tableau de bord)
@@ -1329,6 +1333,11 @@ export default function App() {
                 x.closed = now;
                 x.resolution = { verdict: p.verdict!, reason: p.reason! };
               }
+              if (x.status === 'Résolu' && p.closedDate && p.closedDate !== closedDay(r)) {
+                const error = closedDayError(p.closedDate, r.created, now);
+                if (error) throw new Error(error);
+                x.closed = closedFromDay(p.closedDate);
+              }
               if (x.status === 'Réouvert' && r.status === 'Résolu') {
                 x.closed = null;
                 x.reopened = [...r.reopened, now];
@@ -1602,6 +1611,7 @@ export default function App() {
       verdict: x.resolution?.verdict || 'Avéré',
       reason: x.resolution?.reason || data.types[0],
       reopenReason: '',
+      closedDate: closedDay(x),
       outcome: x.outcome || '',
       imputation: x.imputation || '',
       creditNumber: x.creditNumber || '',
@@ -2640,7 +2650,11 @@ export default function App() {
                         : ''}
                       {incompleteClosure(r)
                         ? ' · clôture incomplète : ' +
-                          [!r.outcome && 'résultat', !r.imputation && 'imputation']
+                          [
+                            !r.outcome && 'résultat',
+                            !r.imputation && 'imputation',
+                            !r.closed && 'date de clôture',
+                          ]
                             .filter(Boolean)
                             .join(' et ') +
                           ' à renseigner'
@@ -3645,6 +3659,26 @@ export default function App() {
                           tôt…)
                         </small>
                       </label>
+                      {edit.status === 'Résolu' && (
+                        <label>
+                          Date de clôture
+                          <input
+                            type="date"
+                            disabled={!canEdit}
+                            value={edit.closedDate || ''}
+                            min={closedDay({ closed: r.created } as Dossier) || undefined}
+                            max={creditToday()}
+                            onChange={(e) => setEdit({ ...edit, closedDate: e.target.value })}
+                          />
+                          <small className="field-note">
+                            {r.status === 'Résolu'
+                              ? r.closed
+                                ? 'Date à laquelle le dossier a été résolu ; modifiable si elle est fausse.'
+                                : 'Ce dossier résolu n’a pas de date de clôture (reprise de SharePoint) : choisissez-la, sinon son délai se compte jusqu’à aujourd’hui.'
+                              : 'Vide : aujourd’hui. Choisissez une date passée si le dossier a été résolu avant.'}
+                          </small>
+                        </label>
+                      )}
                       {/* Plus de « Qualification à la résolution » : la conclusion (avéré / non avéré)
                           est déduite du résultat du litige (app/treatment-rules.mjs) */}
                       {edit.status === 'Réouvert' && r.status === 'Résolu' && (
@@ -3683,10 +3717,23 @@ export default function App() {
                     <div className="delay">
                       <Clock size={19} />
                       <div>
-                        <b>{days(r.created, r.closed).toFixed(1)} jours</b>
-                        <small>
-                          {r.closed ? 'Délai ouverture → clôture' : 'Depuis l’ouverture du dossier'}
-                        </small>
+                        {r.status === 'Résolu' && !r.closed ? (
+                          <>
+                            <b>Date de clôture à renseigner</b>
+                            <small>
+                              Dossier résolu sans date de clôture : choisissez-la en partie 5
+                            </small>
+                          </>
+                        ) : (
+                          <>
+                            <b>{days(r.created, r.closed).toFixed(1)} jours</b>
+                            <small>
+                              {r.closed
+                                ? 'Délai ouverture → clôture'
+                                : 'Depuis l’ouverture du dossier'}
+                            </small>
+                          </>
+                        )}
                       </div>
                     </div>
                   </section>
@@ -5144,6 +5191,20 @@ export default function App() {
                     <small className="field-note">
                       Proposée selon le résultat quand elle est certaine ; à choisir sinon (Interne
                       : notre faute · Transporteur · Autre : un tiers).
+                    </small>
+                  </label>
+                  <label>
+                    Date de clôture
+                    <input
+                      type="date"
+                      value={edit.closedDate || ''}
+                      min={closedDay({ closed: r.created } as Dossier) || undefined}
+                      max={creditToday()}
+                      onChange={(e) => setEdit({ ...edit, closedDate: e.target.value })}
+                    />
+                    <small className="field-note">
+                      Vide : aujourd’hui. Choisissez une date passée si le dossier a été résolu
+                      avant.
                     </small>
                   </label>
                   <button className="primary" disabled={busy}>
