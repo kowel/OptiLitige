@@ -2074,6 +2074,14 @@
 :root[data-theme='dark'] .relances-list li {
     border: 1px solid #37375d
 }
+:root[data-theme='dark'] .relances-toggle {
+    border: 1px solid #37375d;
+    background: #21273b;
+    color: #a9a3e1
+}
+:root[data-theme='dark'] .relances-toggle:hover {
+    background: #271f4c
+}
 :root[data-theme='dark'] .carrier-cost-bar i {
     background: #552324
 }
