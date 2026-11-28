@@ -15,7 +15,7 @@ const rows = [
     carrier: 'DPD',
     type: 'Colis cassé',
     origin: 'Transport',
-    assignee: 'x@c.fr',
+    creator: 'x@c.fr',
     priority: 'Haute',
     creditIssued: true,
   },
@@ -26,7 +26,7 @@ const rows = [
     carrier: 'GLS',
     type: 'Erreur',
     origin: 'Interne',
-    assignee: '',
+    creator: '',
     priority: 'Normale',
   },
   { id: 'import-c', brand: 'Grosbill', carrier: 'DPD', productType: 'PC', origin: 'Transport' },
@@ -47,8 +47,8 @@ test('enseigne et transporteur se combinent', () => {
   assert.equal(countAnalytics({ carrier: 'DPD', brand: 'Grosbill' }), 2);
 });
 
-test('agent, priorité, avoir et service créateur', () => {
-  const m = (f, r) => matchesAnalytics(r, { ...EMPTY_ANALYTICS, ...f });
+test('agent (créateur), priorité, avoir et service créateur', () => {
+  const m = (f, r) => matchesAnalytics(r, { ...EMPTY_ANALYTICS, ...f }, [{ email: 'x@c.fr' }]);
   assert.ok(m({ assignee: 'none' }, rows[1]));
   assert.ok(!m({ assignee: 'none' }, rows[0]));
   assert.ok(m({ assignee: 'x@c.fr' }, rows[0]));
@@ -89,10 +89,12 @@ test('filtres en clair pour le bandeau de la liste', () => {
     [
       'Enseigne : GROSBILL',
       'Service créateur : Relation client',
-      'Agent attribué : Lydia',
+      'Agent (créateur) : Lydia',
       'Priorité : Urgents seulement',
       'Avoir : Sans avoir',
     ],
   );
-  assert.deepEqual(describeAnalytics({ assignee: 'none' }), ['Agent attribué : Non attribués']);
+  assert.deepEqual(describeAnalytics({ assignee: 'none' }), [
+    'Agent (créateur) : Auteur sans compte',
+  ]);
 });

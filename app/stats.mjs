@@ -5,7 +5,7 @@ export const STAT_DIMENSIONS = {
   carrier: 'Transporteur',
   brand: 'Enseigne',
   store: 'Magasin',
-  assignee: 'Agent litige',
+  assignee: 'Agent (créateur)',
   type: 'Type à l’ouverture',
   outcome: 'Résultat du litige',
 };
@@ -17,6 +17,7 @@ import {
   shipmentsFor,
 } from './carrier-tracking.mjs';
 import { csvCell } from './csv.mjs';
+import { ownerOf } from './dashboard-data.mjs';
 import { carrierCostOf, carrierFault } from './carrier-cost.mjs';
 import { stakeOf } from './advanced-filters.mjs';
 import { carrierDays, clientDays, commonDays } from './delays.mjs';
@@ -205,11 +206,11 @@ export function groupStats(
               ? r.type
               : by === 'outcome'
                 ? r.outcome
-                : r.assignee;
+                : ownerOf(r);
     const key = raw
       ? label(String(raw))
       : by === 'assignee'
-        ? 'Non attribué'
+        ? 'Non renseigné'
         : by === 'outcome'
           ? 'À qualifier'
           : 'Non renseigné';

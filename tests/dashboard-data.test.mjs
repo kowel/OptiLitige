@@ -36,7 +36,7 @@ test('age boundaries, assignments and overdue transport followups', () => {
   const rows = [0, 2, 3, 7, 8, 14, 15].map((n, i) => ({
     status: 'Nouveau',
     created: new Date(+now - n * 86400000).toISOString(),
-    assignee: i ? 'agent@test.fr' : '',
+    creator: i ? 'agent@test.fr' : '',
     origin: 'Transport',
     carrierFollowupAt: '2026-10-28',
     carrierStatus: i ? 'En attente réponse' : 'Clos',
@@ -107,4 +107,44 @@ test('rythme par semaine : 12 semaines du lundi au dimanche', async () => {
     d.activityWeeks.reduce((n, w) => n + w.opened, 0),
     2,
   );
+});
+test('par agent : créateur, ou nom SharePoint si son auteur n’a pas de compte', async () => {
+  const { ownerOf } = await import('../app/dashboard-data.mjs');
+  const rows = [
+    { status: 'Nouveau', creator: 'a@test.fr', created: now.toISOString() },
+    // repris de SharePoint, rattaché au compte
+    {
+      status: 'Nouveau',
+      importedAt: 'x',
+      requester: 'Agent A',
+      requesterEmail: 'a@test.fr',
+      creator: 'a@test.fr',
+    },
+    // repris de SharePoint, auteur sans compte : compté sous son nom
+    {
+      status: 'Pris en charge',
+      importedAt: 'x',
+      requester: 'Manon Exemple',
+      creator: 'import@test.fr',
+    },
+    { status: 'Résolu', importedAt: 'x', requester: 'Manon Exemple', creator: 'import@test.fr' },
+  ];
+  assert.equal(ownerOf(rows[2]), 'Manon Exemple');
+  const members = [
+    { email: 'a@test.fr', name: 'Agent A', role: 'RC' },
+    { email: 'import@test.fr', name: 'Import', role: 'Désactivé' },
+  ];
+  const d = buildDashboardData(rows, members, now);
+  assert.deepEqual(
+    d.workload.map((x) => [x.label, x.value]),
+    [
+      ['Agent A', 2],
+      ['Manon Exemple', 1],
+    ],
+  );
+  // compte désactivé : jamais affiché comme service
+  assert.deepEqual(d.sources.map((x) => x.label).sort(), [
+    'Relation client',
+    'Repris de l’ancienne liste',
+  ]);
 });

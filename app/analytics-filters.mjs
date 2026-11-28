@@ -1,6 +1,7 @@
 // Filtres de l'écran « Analyses & rapports » : ils s'appliquent à tout l'écran (indicateurs,
 // graphiques, issues des litiges et tableau de statistiques du bas), en plus de la période.
 import { SOURCE_LABELS, hasCredit, sourceOf } from './advanced-filters.mjs';
+import { ownerOf } from './dashboard-data.mjs';
 
 export const EMPTY_ANALYTICS = {
   brand: '',
@@ -10,7 +11,7 @@ export const EMPTY_ANALYTICS = {
   productType: '',
   origin: '',
   source: '', // service du créateur : RC, SAV, import
-  assignee: '', // e-mail de l'agent, ou « none » pour les dossiers non attribués
+  assignee: '', // e-mail de l'agent qui a créé le dossier, ou « none » : auteur sans compte
   priority: '', // urgent | normal
   credit: '', // with | without
   imputation: '', // Interne | Transporteur | Autre | none (non précisée)
@@ -24,7 +25,7 @@ export const ANALYTICS_LABELS = {
   productType: 'Type de produit',
   origin: 'Origine',
   source: 'Service créateur',
-  assignee: 'Agent attribué',
+  assignee: 'Agent (créateur)',
   priority: 'Priorité',
   credit: 'Avoir',
   imputation: 'Imputation',
@@ -41,8 +42,8 @@ export function matchesAnalytics(record, filters, members = []) {
   if (f.productType && record.productType !== f.productType) return false;
   if (f.origin && record.origin !== f.origin) return false;
   if (f.source && sourceOf(record, members) !== f.source) return false;
-  if (f.assignee === 'none' && record.assignee) return false;
-  if (f.assignee && f.assignee !== 'none' && record.assignee !== f.assignee) return false;
+  if (f.assignee === 'none' && members.some((m) => m.email === ownerOf(record))) return false;
+  if (f.assignee && f.assignee !== 'none' && ownerOf(record) !== f.assignee) return false;
   if (f.priority === 'urgent' && !isUrgent(record)) return false;
   if (f.priority === 'normal' && isUrgent(record)) return false;
   if (f.credit === 'with' && !hasCredit(record)) return false;
@@ -62,7 +63,7 @@ export function filterAnalytics(records, filters, members = []) {
 
 // Filtres actifs en clair (« Enseigne : GROSBILL »…) : bandeau de la liste ouverte depuis les analyses
 const VALUE_LABELS = {
-  assignee: { none: 'Non attribués' },
+  assignee: { none: 'Auteur sans compte' },
   priority: { urgent: 'Urgents seulement', normal: 'Hors urgents' },
   credit: { with: 'Avec avoir', without: 'Sans avoir' },
   imputation: { none: 'Non précisée' },
